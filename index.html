@@ -104,12 +104,27 @@
   .focus .card, .focus .side { opacity: 0; pointer-events: none; transform: translateY(-8px); }
   .focus .hud { display: flex; }
 
-  .speed-ctl { display: none; align-items: center; justify-content: center; gap: 14px; }
+  .speed-ctl { display: none; flex-direction: column; gap: 8px; background: rgba(8,12,22,.72); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--line); border-radius: 20px; padding: 10px 12px; }
+  .spd-row { display: flex; align-items: center; gap: 12px; }
+  .spd-quick { display: flex; gap: 6px; justify-content: space-between; }
+  .spd-quick button { flex: 1; padding: 7px 0; border-radius: 12px; border: 1px solid var(--line); background: rgba(255,255,255,.06); font-family: var(--cond); font-weight: 800; font-size: 1rem; }
+  .spd-quick button.on { border-color: var(--cyan); color: var(--cyan); background: rgba(0,229,255,.12); }
+  .speed-target b { display: block; font-size: 2.1rem; line-height: 1; }
+  .speed-target span { font-family: Barlow; font-size: .7rem; color: var(--sub); font-weight: 600; }
   .speed-ctl.show { display: flex; }
-  .sbtn { width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line); background: var(--glass); backdrop-filter: blur(10px); font-size: 1.4rem; font-weight: 700; }
-  .speed-target { font-family: var(--cond); font-weight: 800; font-size: 1.1rem; min-width: 110px; text-align: center; background: var(--glass); border: 1px solid var(--line); padding: 8px 12px; border-radius: 14px; }
+  .sbtn { width: 58px; height: 58px; font-size: 1.8rem; flex-shrink: 0; border-radius: 50%; border: 1px solid var(--line); background: var(--glass); backdrop-filter: blur(10px); font-size: 1.4rem; font-weight: 700; }
+  .speed-target { flex: 1; font-family: var(--cond); font-weight: 800; text-align: center; }
 
-  .actions { display: flex; align-items: center; gap: 12px; justify-content: space-between; }
+  .actions { display: flex; align-items: flex-end; justify-content: space-between; padding: 0 18px; }
+  .act { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: .78rem; font-weight: 700; color: #dbe3ee; text-shadow: 0 1px 4px rgba(0,0,0,.8); min-width: 76px; }
+  .rbtn { width: 60px; height: 60px; border-radius: 50%; background: rgba(12,18,32,.82); border: 1px solid rgba(255,255,255,.2); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); display: grid; place-items: center; }
+  .rbtn svg { width: 26px; height: 26px; }
+  .rbtn.ok { border-color: var(--green); box-shadow: 0 0 14px rgba(0,255,156,.4); }
+  .rbtn.stop { border-color: var(--red); box-shadow: 0 0 14px rgba(255,77,109,.45); }
+  .play { width: 96px; height: 96px; border-radius: 50%; border: 0; background: linear-gradient(135deg, #00e5ff, #00ff9c); display: grid; place-items: center; box-shadow: 0 0 0 8px rgba(0,229,255,.15), 0 10px 30px rgba(0,229,255,.5); transition: transform .15s; }
+  .play:active { transform: scale(.95); }
+  .play svg { width: 44px; height: 44px; }
+  .play.pause { background: linear-gradient(135deg, #ffb020, #ff7a00); box-shadow: 0 0 0 8px rgba(255,176,32,.15), 0 10px 30px rgba(255,140,0,.45); }
   .round { width: 66px; height: 66px; flex-shrink: 0; border-radius: 50%; background: rgba(6,16,24,.75); border: 2px solid var(--green); box-shadow: 0 0 14px rgba(0,255,156,.35), inset 0 0 12px rgba(0,255,156,.15); font-family: var(--cond); font-weight: 800; font-size: .68rem; text-transform: uppercase; line-height: 1.05; letter-spacing: .3px; }
   .round.blue { border-color: #2f8bff; box-shadow: 0 0 14px rgba(47,139,255,.45), inset 0 0 12px rgba(47,139,255,.15); }
   .round.red { border-color: var(--red); box-shadow: 0 0 14px rgba(255,77,109,.45); color: #ffd5dd; }
@@ -126,7 +141,7 @@
   .music.show { display: block; }
   .music iframe { display: block; width: 100%; height: 80px; border: 0; }
   .sp-bar { display: flex; align-items: center; gap: 10px; padding: 8px 10px; }
-  .sp-art { width: 44px; height: 44px; border-radius: 8px; background: #222 center/cover; flex-shrink: 0; }
+  .sp-art { width: 44px; height: 44px; border-radius: 8px; background: #000 center/cover; flex-shrink: 0; }
   .sp-meta { flex: 1; min-width: 0; }
   .sp-title { font-weight: 700; font-size: .9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .sp-artist { font-size: .75rem; color: var(--sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -209,6 +224,20 @@
   .dialog .row { display: flex; gap: 10px; }
   .dialog .row button { flex: 1; padding: 13px; border-radius: 14px; border: 1px solid var(--line); background: rgba(255,255,255,.06); font-weight: 700; }
   .dialog .row button.ok { background: var(--cyan); color: #001; border: 0; }
+  .dialog .edit { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 14px 0 4px; }
+  .dialog .edit label { font-size: .75rem; color: var(--sub); font-weight: 600; display: flex; flex-direction: column; gap: 4px; }
+  .dialog .edit input { background: rgba(255,255,255,.07); border: 1px solid var(--line); color: #fff; border-radius: 12px; padding: 10px; font-family: var(--cond); font-weight: 800; font-size: 1.4rem; width: 100%; }
+  .dialog .sum.small { grid-template-columns: 1fr 1fr 1fr; margin: 12px 0 16px; }
+  .dialog .sum.small b { font-size: 1.2rem; }
+  .viewer { position: fixed; inset: 0; background: #000; z-index: 55; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 10px; }
+  .viewer.open { display: flex; }
+  .viewer img { max-width: 100%; max-height: calc(100% - 70px); border-radius: 10px; }
+  .viewer.clean img { max-height: 100%; }
+  .viewer.clean .vbar, .viewer.clean .vtip { display: none; }
+  .vbar { display: flex; gap: 10px; }
+  .vbar button { padding: 12px 18px; border-radius: 14px; border: 1px solid var(--line); background: rgba(255,255,255,.08); font-weight: 700; }
+  .vbar button.ok { background: var(--cyan); color: #001; border: 0; }
+  .vtip { font-size: .75rem; color: var(--sub); }
   .toast { position: fixed; left: 50%; bottom: calc(var(--nav-h) + 20px); transform: translate(-50%, 20px); background: #121a2c; border: 1px solid var(--line); padding: 10px 16px; border-radius: 14px; font-size: .85rem; z-index: 60; opacity: 0; transition: .25s; pointer-events: none; max-width: 90vw; text-align: center; }
   .toast.show { opacity: 1; transform: translate(-50%, 0); }
 
@@ -242,7 +271,7 @@
       </div>
       <div class="top-icons">
         <button class="icon-btn" id="btnFocus" title="Modo vista" aria-label="Modo vista"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
-        <button class="icon-btn" id="btnMusic" title="Música" aria-label="Música"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></button>
+        <button class="icon-btn" id="btnMusic" title="Spotify" aria-label="Spotify"><svg viewBox="0 0 24 24"><path fill="#1ED760" d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg></button>
         <button class="icon-btn" id="btnMap" title="Mini-mapa" aria-label="Mini-mapa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></button>
       </div>
     </div>
@@ -297,15 +326,18 @@
       <div class="music" id="music"></div>
 
       <div class="speed-ctl" id="speedCtl">
-        <button class="sbtn" id="spdDown" aria-label="Diminuir velocidade">−</button>
-        <div class="speed-target" id="spdTarget">0,0 km/h</div>
-        <button class="sbtn" id="spdUp" aria-label="Aumentar velocidade">+</button>
+        <div class="spd-row">
+          <button class="sbtn" id="spdDown" aria-label="Diminuir velocidade">−</button>
+          <div class="speed-target"><b id="spdTarget">3,0</b><span id="spdHint">km/h · acerte igual à passadeira</span></div>
+          <button class="sbtn" id="spdUp" aria-label="Aumentar velocidade">+</button>
+        </div>
+        <div class="spd-quick" id="spdQuick"></div>
       </div>
 
       <div class="actions">
-        <button class="round" id="btnLeft">Defini-<br>ções</button>
-        <button class="primary" id="btnMain"><span class="label" id="mainLabel">Ligar passadeira</span><span class="chev" id="mainIcon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#fff" stroke-width="2.6"><path d="m9 6 6 6-6 6"/></svg></span></button>
-        <button class="round blue" id="btnRight">Explorar<br>rotas</button>
+        <div class="act"><button class="rbtn" id="btnLeft" aria-label="Rotas"></button><span id="leftLbl">Rotas</span></div>
+        <div class="act"><button class="play" id="btnMain" aria-label="Iniciar"></button><span id="mainLabel">Iniciar</span></div>
+        <div class="act"><button class="rbtn" id="btnRight" aria-label="Relógio"></button><span id="rightLbl">Relógio</span></div>
       </div>
     </div>
   </main>
@@ -343,8 +375,10 @@
 
     <h2>Dispositivos</h2>
     <div class="panel">
-      <div class="dev-row"><div class="st">Passadeira WalkingPad<small id="tmStatus">Desligada</small></div><button class="chip accent" id="tmBtn">Ligar</button></div>
-      <p class="note">A passadeira só aceita uma ligação Bluetooth de cada vez. Se a KS Fit estiver ligada a ela, esta app não a encontra. Para não perder registos, exporte cada caminhada em Atividade (TCX ou GPX) para a app que usa.</p>
+      <div class="field col"><label>Como usa a passadeira<small>A passadeira só aceita uma ligação Bluetooth de cada vez.</small></label>
+        <select id="setMode" style="width:100%;text-align:left"><option value="ksfit">KS Fit grava o treino (recomendado)</option><option value="direct">Ligação direta da Virtual Walk à passadeira</option></select></div>
+      <p class="note" id="modeNote"></p>
+      <div class="dev-row" id="tmRow"><div class="st">Passadeira WalkingPad<small id="tmStatus">Desligada</small></div><button class="chip accent" id="tmBtn">Ligar</button></div>
     </div>
     <div class="panel">
       <div class="dev-row"><div class="st">Relógio ou cinta cardíaca<small id="hrStatus">Desligado</small></div><button class="chip accent" id="hrBtn">Ligar</button></div>
@@ -402,9 +436,16 @@
   <!-- ================= DIÁLOGOS ================= -->
   <div class="dialog" id="dlgEnd">
     <div class="box">
-      <h3>Terminar caminhada?</h3>
-      <div class="sum" id="endSum"></div>
-      <div class="row"><button id="endCancel">Continuar</button><button class="ok" id="endOk">Terminar e guardar</button></div>
+      <h3>Terminar caminhada</h3>
+      <p class="note" id="endNote"></p>
+      <div class="edit">
+        <label>Distância (km)<input type="number" inputmode="decimal" step="0.01" min="0" id="eDist"></label>
+        <label>Tempo (h:mm:ss)<input type="text" inputmode="numeric" id="eTime" placeholder="0:30:00"></label>
+        <label>Passos<input type="number" inputmode="numeric" min="0" id="eSteps"></label>
+        <label>Calorias (kcal)<input type="number" inputmode="numeric" min="0" id="eKcal"></label>
+      </div>
+      <div class="sum small" id="endSum"></div>
+      <div class="row"><button id="endCancel">Continuar</button><button class="ok" id="endOk">Guardar</button></div>
     </div>
   </div>
   <div class="dialog" id="dlgYt">
@@ -414,6 +455,11 @@
       <input type="text" id="ytInput" class="wide" style="width:100%;margin:12px 0;background:rgba(255,255,255,.06);border:1px solid var(--line);color:#fff;border-radius:10px;padding:10px" placeholder="https://youtu.be/...">
       <div class="row"><button id="ytCancel">Cancelar</button><button class="ok" id="ytOk">Guardar</button></div>
     </div>
+  </div>
+  <div class="viewer" id="viewer">
+    <img id="viewImg" alt="Resumo da caminhada">
+    <div class="vtip">Toque na imagem para esconder os botões e fazer printscreen</div>
+    <div class="vbar"><button id="vClose">Fechar</button><button id="vSave">Guardar</button><button class="ok" id="vShare">Partilhar</button></div>
   </div>
   <div class="toast" id="toast"></div>
 </div>
@@ -440,7 +486,7 @@ const store = {
 
 /* ---------------- Definições ---------------- */
 const DEFAULTS = { weight: 70, height: 170, autoStart: true, control: false, wake: true, ref: 5, videoSound: false, demo: false,
-  spLink: '', spClient: '' };
+  spLink: '', spClient: '', mode: 'ksfit', lastSpeed: 3 };
 const settings = Object.assign({}, DEFAULTS, store.get('settings', {}));
 if (settings.spLink === 'https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M') settings.spLink = '';
 function saveSettings() { store.set('settings', settings); }
@@ -547,39 +593,69 @@ function render() {
   const fav = favs.includes(r.id); $('btnFav').querySelector('path').setAttribute('fill', fav ? '#ff4d6d' : 'none'); $('btnFav').querySelector('svg').setAttribute('stroke', fav ? '#ff4d6d' : '#fff');
   renderButtons(); updateMapPos(lapPos);
 }
+const IC = {
+  play: '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="#03121a"/></svg>',
+  pause: '<svg viewBox="0 0 24 24" fill="#1a0d00"><rect x="6" y="5" width="4.2" height="14" rx="1"/><rect x="13.8" y="5" width="4.2" height="14" rx="1"/></svg>',
+  bt: '<svg viewBox="0 0 24 24" fill="none" stroke="#03121a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m7 7 10 10-5 5V2l5 5L7 17"/></svg>',
+  btW: '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 7 10 10-5 5V2l5 5L7 17"/></svg>',
+  route: '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="6" r="2.5"/><path d="M8.5 18H16a3 3 0 0 0 0-6H8a3 3 0 0 1 0-6h7.5"/></svg>',
+  stop: '<svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2.5" fill="#ff4d6d"/></svg>',
+  heart: '<svg viewBox="0 0 24 24" fill="#ff4d6d"><path d="M12 21 4.2 13.5l-1-1.1a5.5 5.5 0 0 1 7.8-7.8l1 1.1 1-1.1a5.5 5.5 0 0 1 7.8 7.8l-1 1.1z"/></svg>'
+};
+const QUICK = [2, 3, 4, 5, 6, 8, 10];
 function renderButtons() {
-  const main = $('btnMain'), left = $('btnLeft'), connected = TM.connected || settings.demo;
-  main.className = 'primary';
-  let label;
-  if (S.state === 'idle') { label = connected ? 'Iniciar caminhada' : 'Ligar passadeira'; if (connected) main.classList.add('go'); }
-  else if (S.state === 'running') { label = 'Pausar'; main.classList.add('warn'); }
-  else { label = 'Retomar'; main.classList.add('go'); }
-  $('mainLabel').textContent = label;
-  $('mainIcon').innerHTML = S.state === 'running'
-    ? '<svg viewBox="0 0 24 24" width="16" height="16" fill="#fff"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>'
-    : '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#fff" stroke-width="2.6"><path d="m9 6 6 6-6 6"/></svg>';
-  if (S.state === 'idle') { left.className = 'round'; left.innerHTML = 'Defini-<br>ções'; }
-  else { left.className = 'round red'; left.innerHTML = 'Termi-<br>nar'; }
-  $('speedCtl').classList.toggle('show', connected && settings.control);
-  $('spdTarget').textContent = `${fmt1(S.targetSpeed)} km/h`;
+  const ks = settings.mode === 'ksfit' && !settings.demo, connected = TM.connected || settings.demo, main = $('btnMain'), left = $('btnLeft'), right = $('btnRight');
+  main.className = 'play';
+  if (S.state === 'idle') {
+    if (ks || connected) { main.innerHTML = IC.play; $('mainLabel').textContent = 'Iniciar'; }
+    else { main.innerHTML = IC.bt; $('mainLabel').textContent = 'Ligar passadeira'; }
+  } else if (S.state === 'running') { main.className = 'play pause'; main.innerHTML = IC.pause; $('mainLabel').textContent = 'Pausar'; }
+  else { main.innerHTML = IC.play; $('mainLabel').textContent = 'Retomar'; }
+  if (S.state === 'idle') { left.className = 'rbtn'; left.innerHTML = IC.route; $('leftLbl').textContent = 'Rotas'; }
+  else { left.className = 'rbtn stop'; left.innerHTML = IC.stop; $('leftLbl').textContent = 'Terminar'; }
+  if (ks) { right.className = 'rbtn' + (HR.connected ? ' ok' : ''); right.innerHTML = IC.heart; $('rightLbl').textContent = HR.connected ? (S.hr ? S.hr + ' BPM' : 'Relógio ✓') : 'Relógio'; }
+  else { right.className = 'rbtn' + (connected ? ' ok' : ''); right.innerHTML = IC.btW; $('rightLbl').textContent = settings.demo ? 'Demo' : TM.connected ? 'R3 ligada' : 'Passadeira'; }
+  $('speedCtl').classList.toggle('show', ks || (connected && settings.control));
+  $('spdTarget').textContent = fmt1(S.targetSpeed);
+  $('spdHint').textContent = ks ? 'km/h · acerte igual à passadeira' : 'km/h · velocidade da passadeira';
+  const q = $('spdQuick'); if (!q.children.length) QUICK.forEach(v => { const b = document.createElement('button'); b.textContent = v; b.onclick = () => TM.setSpeed(v); q.appendChild(b); });
+  [...q.children].forEach((b, i) => b.classList.toggle('on', Math.abs(QUICK[i] - S.targetSpeed) < 0.05));
   $('tmStatus').textContent = settings.demo ? 'Modo demonstração ativo' : TM.connected ? `Ligada · ${TM.name || 'WalkingPad'} (${TM.proto === 'ftms' ? 'FTMS' : 'WalkingPad'})` : 'Desligada';
   $('tmBtn').textContent = TM.connected ? 'Desligar' : 'Ligar';
+  $('tmRow').style.display = ks ? 'none' : '';
+  $('modeNote').innerHTML = ks
+    ? 'Ligue a passadeira na <b>KS Fit</b> como sempre: é a KS Fit que grava o treino. Aqui não precisa de ligar a passadeira, basta acertar a velocidade com os botões − / + sempre que a mudar no comando. No fim, escreva os valores da KS Fit e a imagem de resumo fica igual.'
+    : 'A Virtual Walk liga-se à passadeira e lê os dados automaticamente. Neste modo a KS Fit <b>não</b> grava o treino.';
 }
 setInterval(() => { const d = new Date(); $('clock').textContent = `${pad(d.getHours())}:${pad(d.getMinutes())}`; }, 1000);
 
 /* ---------------- Sessão ---------------- */
 function startSession() {
-  Object.assign(S, { state: 'running', dist: 0, steps: 0, sec: 0, kcal: 0, hrSum: 0, hrN: 0, hrMax: 0, startedAt: new Date().toISOString(), track: [], lastPt: 0, routeId: currentRoute.id });
+  Object.assign(S, { state: 'running', dist: 0, steps: 0, sec: 0, kcal: 0, hrSum: 0, hrN: 0, hrMax: 0, vmax: 0, startedAt: new Date().toISOString(), track: [], lastPt: 0, routeId: currentRoute.id });
+  if (!S.targetSpeed) S.targetSpeed = settings.lastSpeed || 3;
   if (settings.control) TM.startBelt();
   wake.on(); musicAuto('play'); render(); toast('Boa caminhada! 🚶');
 }
 function pauseSession() { S.state = 'paused'; if (settings.control) TM.stopBelt(); musicAuto('pause'); render(); }
 function resumeSession() { S.state = 'running'; if (settings.control) TM.startBelt(); musicAuto('play'); render(); }
-function askEnd() {
-  const avg = S.sec ? S.dist / (S.sec / 3600) : 0;
-  $('endSum').innerHTML = [[fmt2(S.dist) + ' km', 'Distância'], [fmtTime(S.sec), 'Tempo em movimento'], [Math.round(S.kcal) + ' kcal', 'Calorias'],
-    [Math.round(S.steps).toLocaleString('pt-PT'), 'Passos'], [fmt1(avg) + ' km/h', 'Velocidade média'], [S.hrN ? Math.round(S.hrSum / S.hrN) + ' BPM' : '--', 'Ritmo cardíaco médio']]
+function parseTime(t) { const p = String(t).trim().split(':').map(Number); if (p.some(isNaN) || !p.length) return null; return p.reduce((a, v) => a * 60 + v, 0); }
+function fmtHMS(sec) { sec = Math.round(sec); return `${Math.floor(sec / 3600)}:${pad(sec % 3600 / 60)}:${pad(sec % 60)}`; }
+function endValues() {
+  const dist = Math.max(0, parseFloat(String($('eDist').value).replace(',', '.')) || 0), sec = parseTime($('eTime').value) ?? S.sec;
+  const steps = Math.max(0, parseInt($('eSteps').value) || 0), kcal = Math.max(0, parseInt($('eKcal').value) || 0), avg = sec ? dist / (sec / 3600) : 0;
+  return { dist, sec, steps, kcal, avg, vmax: Math.max(S.vmax || 0, avg) };
+}
+function updEndSum() {
+  const v = endValues();
+  $('endSum').innerHTML = [[fmt1(v.avg) + ' km/h', 'Vel. média'], [fmt1(v.vmax) + ' km/h', 'Vel. máxima'], [S.hrN ? Math.round(S.hrSum / S.hrN) + ' BPM' : '--', 'BPM médio']]
     .map(([b, s]) => `<div><b>${b}</b><span>${s}</span></div>`).join('');
+}
+function askEnd() {
+  $('eDist').value = S.dist.toFixed(2); $('eTime').value = fmtHMS(S.sec); $('eSteps').value = Math.round(S.steps); $('eKcal').value = Math.round(S.kcal);
+  $('endNote').textContent = settings.mode === 'ksfit' && !settings.demo
+    ? 'Termine também na KS Fit e copie para aqui os valores que ela mostra. Assim a imagem de resumo fica igual à KS Fit.'
+    : 'Valores lidos da passadeira. Pode corrigi-los se quiser.';
+  ['eDist', 'eTime', 'eSteps', 'eKcal'].forEach(id => $(id).oninput = updEndSum); updEndSum();
   $('dlgEnd').classList.add('open');
 }
 function endSession() {
@@ -588,9 +664,11 @@ function endSession() {
     const hist = store.get('history', []);
     hist.forEach((h, i) => { if (i >= 29) delete h.track; });   // guarda os pontos das 30 sessões mais recentes
     S.track.push([Date.now(), +(S.dist * 1000).toFixed(1), S.hr || 0, +S.speed.toFixed(2), ...posAt(currentRoute, currentRoute.km ? routeKmDone() % currentRoute.km : 0).map(n => +n.toFixed(6)), Math.round(S.steps)]);
-    hist.unshift({ id: Date.now(), track: S.track, date: S.startedAt, route: currentRoute.name, dist: +S.dist.toFixed(3), sec: Math.round(S.sec), kcal: Math.round(S.kcal), steps: Math.round(S.steps),
-      avg: S.sec ? +(S.dist / (S.sec / 3600)).toFixed(2) : 0, hr: S.hrN ? Math.round(S.hrSum / S.hrN) : null, hrMax: S.hrMax || null });
-    store.set('history', hist.slice(0, 500)); toast('Sessão guardada em Atividade ✓ Pode exportá-la para outra app.', 3500);
+    const v = endValues();
+    hist.unshift({ id: Date.now(), track: S.track, date: S.startedAt, route: currentRoute.name, dist: +v.dist.toFixed(3), sec: Math.round(v.sec), kcal: v.kcal, steps: v.steps,
+      avg: +v.avg.toFixed(2), vmax: +v.vmax.toFixed(1), hr: S.hrN ? Math.round(S.hrSum / S.hrN) : null, hrMax: S.hrMax || null, ksfit: settings.mode === 'ksfit' && !settings.demo });
+    store.set('history', hist.slice(0, 500)); toast('Sessão guardada em Atividade ✓', 2500);
+    setTimeout(() => showSummary(hist[0]), 300);
   }
   if (settings.control) TM.stopBelt();
   S.state = 'idle'; S.dist = S.steps = S.sec = S.kcal = 0; wake.off(); musicAuto('pause'); render();
@@ -600,6 +678,7 @@ function endSession() {
 function onTreadmill({ speed, dDist, dSteps }) {
   S.speed = speed;
   if (S.state === 'idle' && speed > 0 && settings.autoStart) startSession();
+  if (S.state === 'running' && speed > (S.vmax || 0)) S.vmax = speed;
   if (S.state === 'running' && dDist > 0) {
     S.dist += dDist;
     S.steps += dSteps != null ? dSteps : dDist * 1000 / (settings.height * 0.415 / 100);
@@ -729,7 +808,7 @@ const TM = {
     if (this.proto === 'wp') this.send([0xa2, 0x01, 0x00]); else this.ftms([0x00]).then(() => this.ftms([0x08, 0x01]));
   },
   setSpeed(kmh) {
-    S.targetSpeed = kmh = clamp(Math.round(kmh * 10) / 10, 0, 12);
+    S.targetSpeed = kmh = clamp(Math.round(kmh * 10) / 10, 0.5, 12); settings.lastSpeed = kmh; saveSettings();
     if (settings.demo) { demo.target = kmh; renderButtons(); return; }
     if (this.proto === 'wp') { if (this.mode !== 1) this.send([0xa2, 0x02, 0x01]); this.send([0xa2, 0x01, Math.round(kmh * 10)]); }
     else if (this.proto === 'ftms') { const v = Math.round(kmh * 100); this.ftms([0x00]).then(() => this.ftms([0x02, v & 0xff, v >> 8])); }
@@ -742,6 +821,16 @@ const TM = {
     video.sync(); render(); if (was) toast('Passadeira desligada. A sessão ficou em pausa.', 4000);
   }
 };
+
+/* ---------------- Modo KS Fit: velocidade indicada pelo utilizador ---------------- */
+let manT = performance.now();
+setInterval(() => {
+  const now = performance.now(), dt = Math.min(3, (now - manT) / 1000); manT = now;
+  if (settings.mode !== 'ksfit' || settings.demo || TM.connected) return;
+  const sp = S.state === 'running' ? S.targetSpeed : 0;
+  if (sp === 0 && S.speed === 0) return;
+  onTreadmill({ speed: sp, dDist: sp * dt / 3600, dSteps: null });
+}, 1000);
 
 /* ---------------- Modo demonstração ---------------- */
 const demo = { target: 0, speed: 0, timer: null,
@@ -762,7 +851,7 @@ const HR = { device: null, connected: false,
     } catch (e) { if (e && e.name !== 'NotFoundError') toast('Não foi possível ligar o sensor. Ative a partilha de ritmo cardíaco no relógio.', 4500); }
   },
   disconnect() { try { this.device.gatt.disconnect(); } catch (e) {} },
-  status() { $('hrStatus').textContent = this.connected ? `Ligado · ${this.device.name || 'sensor'}` : 'Desligado'; $('hrBtn').textContent = this.connected ? 'Desligar' : 'Ligar'; }
+  status() { if (typeof renderButtons === 'function') renderButtons(); $('hrStatus').textContent = this.connected ? `Ligado · ${this.device.name || 'sensor'}` : 'Desligado'; $('hrBtn').textContent = this.connected ? 'Desligar' : 'Ligar'; }
 };
 
 /* ---------------- Ecrã sempre ligado ---------------- */
@@ -979,7 +1068,7 @@ const ICON = {
   next: '<svg viewBox="0 0 24 24" fill="#fff"><path d="M16 5h2v14h-2zM4 5v14l11-7z"/></svg>',
   play: '<svg viewBox="0 0 24 24" fill="#000"><path d="M7 4v16l13-8z"/></svg>',
   pause: '<svg viewBox="0 0 24 24" fill="#000"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>',
-  spotify: '<svg viewBox="0 0 24 24" fill="#1ed760"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm4.6 14.4a.6.6 0 0 1-.9.2c-2.4-1.5-5.4-1.8-8.9-1a.6.6 0 1 1-.3-1.2c3.9-.9 7.2-.5 9.9 1.1.3.2.4.6.2.9zm1.2-2.8a.8.8 0 0 1-1 .3c-2.7-1.7-6.9-2.2-10.2-1.2a.8.8 0 1 1-.4-1.5c3.7-1.1 8.4-.6 11.5 1.4.3.2.4.7.1 1zm.1-2.9C14.6 8.8 9.2 8.6 6.1 9.5a.9.9 0 1 1-.5-1.8c3.6-1.1 9.5-.9 13.2 1.3a.9.9 0 0 1-.9 1.7z"/></svg>'
+  spotify: '<svg viewBox="0 0 24 24" width="30" height="30"><path fill="#1ED760" d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>'
 };
 let embedKey = null;
 function renderMusic() {
@@ -1065,7 +1154,7 @@ function renderActivity() {
   const max = Math.max(1, ...vals), wd = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
   $('weekChart').innerHTML = days.map((d, i) => `<div><i style="height:${Math.max(3, vals[i] / max * 70)}px" title="${fmt2(vals[i])} km"></i><span>${wd[d.getDay()]}</span></div>`).join('');
   $('histList').innerHTML = hist.length ? hist.slice(0, 100).map(h => { const d = new Date(h.date);
-    return `<div class="panel"><div class="hist-item"><div><div class="t">${h.route}</div><div class="d">${d.toLocaleDateString('pt-PT', { day: '2-digit', month: 'short' })} · ${pad(d.getHours())}:${pad(d.getMinutes())} · ${fmtTime(h.sec)} · ${h.kcal} kcal${h.hr ? ' · ♥ ' + h.hr : ''}</div></div><div class="v">${fmt2(h.dist)} km<small>${fmt1(h.avg)} km/h · ${(h.steps || 0).toLocaleString('pt-PT')} passos</small></div></div>
+    return `<div class="panel"><div class="hist-item"><div><div class="t">${h.route}</div><div class="d">${d.toLocaleDateString('pt-PT', { day: '2-digit', month: 'short' })} · ${pad(d.getHours())}:${pad(d.getMinutes())} · ${fmtTime(h.sec)} · ${h.kcal} kcal${h.hr ? ' · ♥ ' + h.hr : ''}</div></div><div class="v">${fmt2(h.dist)} km<small>${fmt1(h.avg)} km/h${h.vmax ? ' · máx ' + fmt1(h.vmax) : ''} · ${(h.steps || 0).toLocaleString('pt-PT')} passos</small></div></div>
       <div class="route-actions"><button class="chip accent" data-x="png" data-i="${hist.indexOf(h)}">Imagem de resumo</button><button class="chip" data-x="tcx" data-i="${hist.indexOf(h)}">TCX</button><button class="chip" data-x="gpx" data-i="${hist.indexOf(h)}">GPX (com mapa)</button></div></div>`; }).join('')
     : '<div class="empty">Ainda não há caminhadas guardadas.<br>Termine uma sessão para a ver aqui.</div>';
   $('histList').querySelectorAll('[data-x]').forEach(b => b.onclick = () => exportSession(hist[+b.dataset.i], b.dataset.x));
@@ -1105,37 +1194,64 @@ ${tp}
 </trkseg></trk></gpx>`;
 }
 function buildPNG(h) {
-  const W = 1080, H = 1350, c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d');
-  const bg = g.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, '#0d1a2e'); bg.addColorStop(1, '#05070d'); g.fillStyle = bg; g.fillRect(0, 0, W, H);
-  const glow = g.createRadialGradient(W * .85, 120, 10, W * .85, 120, 600); glow.addColorStop(0, 'rgba(0,229,255,.25)'); glow.addColorStop(1, 'rgba(0,229,255,0)'); g.fillStyle = glow; g.fillRect(0, 0, W, H);
+  const W = 1080, H = 1920, c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d');
+  const bg = g.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, '#0d1a2e'); bg.addColorStop(1, '#04060b'); g.fillStyle = bg; g.fillRect(0, 0, W, H);
+  const glow = g.createRadialGradient(W * .85, 160, 10, W * .85, 160, 700); glow.addColorStop(0, 'rgba(0,229,255,.25)'); glow.addColorStop(1, 'rgba(0,229,255,0)'); g.fillStyle = glow; g.fillRect(0, 0, W, H);
   const cond = '"Barlow Condensed", "Arial Narrow", sans-serif', reg = 'Barlow, Roboto, sans-serif';
-  // logótipo
   const lg = g.createLinearGradient(80, 0, 150, 0); lg.addColorStop(0, '#00e5ff'); lg.addColorStop(1, '#00ff9c'); g.fillStyle = lg;
-  g.beginPath(); g.moveTo(80, 90); g.lineTo(115, 152); g.lineTo(150, 90); g.lineTo(132, 90); g.lineTo(115, 122); g.lineTo(98, 90); g.closePath(); g.fill();
-  g.fillStyle = '#fff'; g.font = `800 52px ${cond}`; g.fillText('VIRTUAL WALK', 175, 138);
+  g.beginPath(); g.moveTo(80, 110); g.lineTo(115, 172); g.lineTo(150, 110); g.lineTo(132, 110); g.lineTo(115, 142); g.lineTo(98, 110); g.closePath(); g.fill();
+  g.fillStyle = '#fff'; g.font = `800 56px ${cond}`; g.fillText('VIRTUAL WALK', 175, 160);
   const d = new Date(h.date);
-  g.fillStyle = '#9aa8bd'; g.font = `500 36px ${reg}`;
-  g.fillText(d.toLocaleDateString('pt-PT', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) + ' · ' + pad(d.getHours()) + ':' + pad(d.getMinutes()), 80, 240);
-  g.fillStyle = '#fff'; g.font = `800 64px ${cond}`; g.fillText(h.route.toUpperCase(), 80, 320, W - 160);
-  g.fillStyle = '#00e5ff'; g.font = `700 34px ${reg}`; g.fillText('Caminhada na passadeira · WalkingPad R3', 80, 372);
-  // distância
-  g.fillStyle = '#fff'; g.font = `800 230px ${cond}`; const dist = fmt2(h.dist); g.fillText(dist, 76, 600);
-  const dw = g.measureText(dist).width; g.fillStyle = '#00e5ff'; g.font = `800 80px ${cond}`; g.fillText('km', 96 + dw, 600);
-  // grelha
-  const items = [['Tempo', fmtTime(h.sec)], ['Calorias', h.kcal + ' kcal'], ['Passos', (h.steps || 0).toLocaleString('pt-PT')],
-    ['Velocidade média', fmt1(h.avg) + ' km/h'], ['Ritmo médio', fmtPace(h.avg) + ' /km'], ['Ritmo cardíaco', h.hr ? h.hr + ' BPM' + (h.hrMax ? ' (máx ' + h.hrMax + ')' : '') : '--']];
+  g.fillStyle = '#9aa8bd'; g.font = `500 38px ${reg}`;
+  g.fillText(d.toLocaleDateString('pt-PT', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) + ' · ' + pad(d.getHours()) + ':' + pad(d.getMinutes()), 80, 270);
+  g.fillStyle = '#fff'; g.font = `800 72px ${cond}`; g.fillText(h.route.toUpperCase(), 80, 355, W - 160);
+  g.fillStyle = '#00e5ff'; g.font = `700 36px ${reg}`; g.fillText(h.avg >= 7.5 ? 'Corrida na passadeira · WalkingPad R3' : 'Caminhada na passadeira · WalkingPad R3', 80, 410);
+  g.fillStyle = '#9aa8bd'; g.font = `600 36px ${reg}`; g.fillText('Distância', 80, 500);
+  g.fillStyle = '#fff'; g.font = `800 250px ${cond}`; const dist = fmt2(h.dist); g.fillText(dist, 72, 720);
+  const dw = g.measureText(dist).width; g.fillStyle = '#00e5ff'; g.font = `800 90px ${cond}`; g.fillText('km', 92 + dw, 720);
+  const vmax = h.vmax || h.avg;
+  const items = [['Tempo', fmtTime(h.sec)], ['Passos', (h.steps || 0).toLocaleString('pt-PT')], ['Calorias', h.kcal + ' kcal'], ['Ritmo médio', fmtPace(h.avg) + ' /km'],
+    ['Velocidade média', fmt1(h.avg) + ' km/h'], ['Velocidade máxima', fmt1(vmax) + ' km/h'], ['BPM médio', h.hr ? h.hr + ' BPM' : '--'], ['BPM máximo', h.hrMax ? h.hrMax + ' BPM' : '--']];
   items.forEach(([l, v], i) => {
-    const x = 80 + (i % 2) * 470, y = 690 + Math.floor(i / 2) * 190;
+    const x = 80 + (i % 2) * 470, y = 790 + Math.floor(i / 2) * 178;
     g.fillStyle = 'rgba(255,255,255,.06)'; g.strokeStyle = 'rgba(255,255,255,.14)'; g.lineWidth = 2;
-    g.beginPath(); g.roundRect ? g.roundRect(x, y, 450, 165, 28) : g.rect(x, y, 450, 165); g.fill(); g.stroke();
-    g.fillStyle = '#9aa8bd'; g.font = `600 32px ${reg}`; g.fillText(l, x + 32, y + 56);
-    g.fillStyle = '#fff'; g.font = `800 ${v.length > 13 ? 52 : 66}px ${cond}`; g.fillText(v, x + 32, y + 132, 400);
+    g.beginPath(); g.roundRect ? g.roundRect(x, y, 450, 156, 28) : g.rect(x, y, 450, 156); g.fill(); g.stroke();
+    g.fillStyle = '#9aa8bd'; g.font = `600 32px ${reg}`; g.fillText(l, x + 32, y + 54);
+    g.fillStyle = '#fff'; g.font = `800 66px ${cond}`; g.fillText(v, x + 32, y + 126, 400);
   });
-  g.fillStyle = '#5d6a80'; g.font = `500 28px ${reg}`; g.fillText('Registado com Virtual Walk', 80, H - 60);
+  // gráfico da velocidade (e BPM)
+  const cx = 80, cy = 1565, cw = 920, ch = 215;
+  g.fillStyle = '#9aa8bd'; g.font = `600 32px ${reg}`; g.fillText('Velocidade ao longo do treino', cx, cy - 22);
+  g.fillStyle = 'rgba(255,255,255,.05)'; g.beginPath(); g.roundRect ? g.roundRect(cx, cy, cw, ch, 22) : g.rect(cx, cy, cw, ch); g.fill();
+  const pts = (h.track || []).filter(p => p[0]);
+  if (pts.length > 2) {
+    const t0 = pts[0][0], t1 = pts[pts.length - 1][0] || t0 + 1, vM = Math.max(1, ...pts.map(p => p[3])) * 1.15;
+    const X = (t) => cx + 16 + (t - t0) / (t1 - t0 || 1) * (cw - 32), Y = (v) => cy + ch - 16 - v / vM * (ch - 40);
+    const ar = g.createLinearGradient(0, cy, 0, cy + ch); ar.addColorStop(0, 'rgba(0,229,255,.45)'); ar.addColorStop(1, 'rgba(0,229,255,0)');
+    g.beginPath(); g.moveTo(X(t0), cy + ch - 16); pts.forEach(p => g.lineTo(X(p[0]), Y(p[3]))); g.lineTo(X(t1), cy + ch - 16); g.closePath(); g.fillStyle = ar; g.fill();
+    g.beginPath(); pts.forEach((p, i) => i ? g.lineTo(X(p[0]), Y(p[3])) : g.moveTo(X(p[0]), Y(p[3]))); g.strokeStyle = '#00e5ff'; g.lineWidth = 5; g.lineJoin = 'round'; g.stroke();
+    const hrp = pts.filter(p => p[2] > 0);
+    if (hrp.length > 2) { const hM = Math.max(...hrp.map(p => p[2])) * 1.1, hm = Math.min(...hrp.map(p => p[2])) * .9, YH = (v) => cy + ch - 16 - (v - hm) / (hM - hm || 1) * (ch - 40);
+      g.beginPath(); hrp.forEach((p, i) => i ? g.lineTo(X(p[0]), YH(p[2])) : g.moveTo(X(p[0]), YH(p[2]))); g.strokeStyle = '#ff4d6d'; g.lineWidth = 3; g.stroke();
+      g.fillStyle = '#ff4d6d'; g.font = `700 26px ${reg}`; g.fillText('● BPM', cx + cw - 130, cy + 40); }
+    g.fillStyle = '#00e5ff'; g.font = `700 26px ${reg}`; g.fillText('● km/h', cx + 22, cy + 40);
+  } else { g.fillStyle = '#5d6a80'; g.font = `500 30px ${reg}`; g.fillText('Sem dados suficientes para o gráfico', cx + 30, cy + ch / 2 + 10); }
+  g.fillStyle = '#5d6a80'; g.font = `500 28px ${reg}`; g.fillText(h.ksfit ? 'Valores confirmados com a KS Fit · Virtual Walk' : 'Registado com Virtual Walk', 80, H - 70);
   return new Promise(res => c.toBlob(res, 'image/png'));
 }
+let viewFile = null;
+async function showSummary(h) {
+  const d = new Date(h.date), name = `virtual-walk-${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}.png`;
+  viewFile = new File([await buildPNG(h)], name, { type: 'image/png' });
+  $('viewImg').src = URL.createObjectURL(viewFile); $('viewer').classList.remove('clean'); $('viewer').classList.add('open');
+}
+$('viewImg').onclick = () => $('viewer').classList.toggle('clean');
+$('vClose').onclick = () => $('viewer').classList.remove('open');
+$('vSave').onclick = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(viewFile); a.download = viewFile.name; document.body.appendChild(a); a.click(); a.remove(); toast('Imagem guardada em Transferências'); };
+$('vShare').onclick = async () => { try { if (navigator.canShare && navigator.canShare({ files: [viewFile] })) { await navigator.share({ files: [viewFile], title: 'Virtual Walk' }); return; } } catch (e) { if (e && e.name === 'AbortError') return; } $('vSave').click(); };
 async function exportSession(h, kind) {
-  if (kind === 'png') {
+  if (kind === 'png') { showSummary(h); return; }
+  if (kind === 'png-old') {
     const d = new Date(h.date), name = `virtual-walk-${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}.png`;
     const file = new File([await buildPNG(h)], name, { type: 'image/png' });
     try { if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: 'Virtual Walk' }); return; } } catch (e) { if (e && e.name === 'AbortError') return; }
@@ -1151,7 +1267,7 @@ async function exportSession(h, kind) {
 }
 $('exportBtn').onclick = () => {
   const hist = store.get('history', []); if (!hist.length) { toast('Não há sessões para exportar.'); return; }
-  const rows = [['data', 'rota', 'distancia_km', 'tempo_s', 'kcal', 'passos', 'vel_media_kmh', 'bpm_medio', 'bpm_max'], ...hist.map(h => [h.date, '"' + h.route + '"', h.dist, h.sec, h.kcal, h.steps, h.avg, h.hr || '', h.hrMax || ''])];
+  const rows = [['data', 'rota', 'distancia_km', 'tempo_s', 'kcal', 'passos', 'vel_media_kmh', 'vel_max_kmh', 'bpm_medio', 'bpm_max'], ...hist.map(h => [h.date, '"' + h.route + '"', h.dist, h.sec, h.kcal, h.steps, h.avg, h.vmax || '', h.hr || '', h.hrMax || ''])];
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([rows.map(r => r.join(';')).join('\n')], { type: 'text/csv' })); a.download = 'virtual-walk-historico.csv'; a.click();
 };
 $('clearBtn').onclick = () => { if (confirm('Apagar todo o histórico de caminhadas?')) { store.set('history', []); renderActivity(); toast('Histórico apagado'); } };
@@ -1167,6 +1283,7 @@ function bindSettings() {
   const link = $('setSpLink'); link.value = settings.spLink; link.onchange = () => { const v = link.value.trim(); if (v && !sp.parseLink(v)) { toast('Link do Spotify inválido.'); return; } settings.spLink = v; saveSettings(); renderMusic(); toast('Música atualizada ✓'); };
   const cid = $('setSpClient'); cid.value = settings.spClient; cid.onchange = () => { settings.spClient = cid.value.trim(); saveSettings(); };
   $('tmBtn').onclick = () => TM.connected ? TM.disconnect() : TM.connect();
+  const md = $('setMode'); md.value = settings.mode; md.onchange = () => { settings.mode = md.value; saveSettings(); if (md.value === 'ksfit' && TM.connected) TM.disconnect(); render(); };
   $('hrBtn').onclick = () => HR.connected ? HR.disconnect() : HR.connect();
 }
 
@@ -1177,10 +1294,13 @@ function showScreen(name) {
   if (name === 'routes') renderRoutes(); if (name === 'activity') renderActivity(); if (name === 'profile') { renderSpAuth(); $('spPlaylists').innerHTML = ''; }
 }
 document.querySelectorAll('#nav button').forEach(b => b.onclick = () => showScreen(b.dataset.scr));
-$('btnRight').onclick = () => showScreen('routes');
-$('btnLeft').onclick = () => S.state === 'idle' ? showScreen('profile') : askEnd();
+$('btnLeft').onclick = () => S.state === 'idle' ? showScreen('routes') : askEnd();
+$('btnRight').onclick = () => {
+  if (settings.mode === 'ksfit' && !settings.demo) { HR.connected ? toast('Relógio ligado' + (S.hr ? ' · ' + S.hr + ' BPM' : '')) : HR.connect(); }
+  else if (!settings.demo) { TM.connected ? toast('Passadeira ligada') : TM.connect(); }
+};
 $('btnMain').onclick = () => {
-  if (S.state === 'idle') { if (TM.connected || settings.demo) startSession(); else TM.connect(); }
+  if (S.state === 'idle') { if (settings.mode === 'ksfit' || TM.connected || settings.demo) startSession(); else TM.connect(); }
   else if (S.state === 'running') pauseSession(); else resumeSession();
 };
 $('endCancel').onclick = () => $('dlgEnd').classList.remove('open');
@@ -1190,6 +1310,7 @@ $('btnFocus').onclick = () => { const on = $('home').classList.toggle('focus'); 
 $('hrBox').onclick = () => { if (!HR.connected) HR.connect(); };
 $('spdUp').onclick = () => TM.setSpeed((S.targetSpeed || S.speed) + 0.5);
 $('spdDown').onclick = () => TM.setSpeed((S.targetSpeed || S.speed) - 0.5);
+if (!S.targetSpeed) S.targetSpeed = settings.lastSpeed || 3;
 window.addEventListener('pagehide', () => { video.savePos(); store.set('progress', progress); });
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') { video.savePos(); store.set('progress', progress); } });
 
