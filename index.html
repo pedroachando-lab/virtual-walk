@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0b0f19">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Virtual Walk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+  :root {
+    --bg: #0b0f19;
+    --glass: rgba(14, 20, 36, 0.72);
+    --glass-strong: rgba(10, 14, 26, 0.92);
+    --line: rgba(255,255,255,0.14);
+    --cyan: #00e5ff;
+    --cyan-soft: rgba(0,229,255,0.35);
+    --green: #00ff9c;
+    --red: #ff4d6d;
+    --orange: #ffb020;
+    --spotify: #1ed760;
+    --text: #ffffff;
+    --sub: #9aa8bd;
+    --nav-h: 64px;
+    --cond: "Barlow Condensed", "Roboto Condensed", "Arial Narrow", sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; }
+  body { background: var(--bg); color: var(--text); font-family: Barlow, -apple-system, "Segoe UI", Roboto, sans-serif; overflow: hidden; overscroll-behavior: none; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  input, select { font: inherit; }
+
+  .app { position: relative; width: 100vw; height: 100vh; height: 100dvh; overflow: hidden; background: #000; }
+
+  /* ---------- Fundo: foto + vídeo ---------- */
+  .bg-photo { position: absolute; inset: 0; background: #111 center/cover no-repeat; transition: opacity .6s; }
+  .bg-video { position: absolute; inset: 0; overflow: hidden; opacity: 0; transition: opacity .8s; pointer-events: none; }
+  .bg-video.show { opacity: 1; }
+  .bg-video iframe, .bg-video #ytHost { position: absolute; top: 50%; left: 50%; width: max(100vw, 177.78vh); height: max(100vh, 56.25vw); transform: translate(-50%, -50%); border: 0; }
+  .bg-video video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .shade { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(8,12,22,.70) 0%, rgba(8,12,22,.10) 28%, rgba(8,12,22,.05) 52%, rgba(8,12,22,.88) 100%); }
+
+  /* ---------- Ecrã inicial ---------- */
+  .home { position: absolute; inset: 0; bottom: var(--nav-h); display: flex; flex-direction: column; padding: max(14px, env(safe-area-inset-top)) 16px 12px; gap: 12px; z-index: 3; }
+  .topbar { display: flex; justify-content: space-between; align-items: center; }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .logo { width: 34px; height: 34px; display: grid; place-items: center; }
+  .brand-title { font-family: var(--cond); font-weight: 800; font-size: 1.15rem; letter-spacing: .5px; line-height: 1; }
+  .brand-sub { font-size: .75rem; color: var(--sub); margin-top: 2px; }
+  .top-icons { display: flex; gap: 8px; }
+  .icon-btn { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line); background: var(--glass); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); display: grid; place-items: center; }
+  .icon-btn svg { width: 19px; height: 19px; }
+  .icon-btn.on { border-color: var(--cyan); box-shadow: 0 0 12px var(--cyan-soft); }
+
+  .mid { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px; }
+  .card { flex-shrink: 0; width: 100%; max-width: 560px; background: var(--glass); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid var(--line); border-top-color: rgba(0,229,255,.45); border-radius: 20px; padding: 14px; box-shadow: 0 10px 34px rgba(0,0,0,.45); transition: opacity .3s, transform .3s; max-height: 100%; overflow: auto; scrollbar-width: none; }
+  .card-head { display: flex; justify-content: space-between; align-items: center; }
+  .clock { font-family: var(--cond); font-weight: 700; font-size: 1.6rem; }
+  .fav-btn { background: none; border: 0; width: 30px; height: 30px; display: grid; place-items: center; }
+  .fav-btn svg { width: 20px; height: 20px; }
+  .route-row { display: flex; gap: 10px; align-items: center; margin: 8px 0 10px; }
+  .route-thumb { width: 58px; height: 58px; border-radius: 10px; background: #223 center/cover; flex-shrink: 0; border: 1px solid var(--line); }
+  .route-name { font-family: var(--cond); font-weight: 800; font-size: clamp(1.2rem, 6vw, 1.6rem); line-height: 1.05; text-transform: uppercase; }
+  .route-loc { font-size: .85rem; color: var(--sub); text-transform: uppercase; margin-top: 2px; }
+  .stat-line { display: flex; align-items: center; gap: 8px; font-family: var(--cond); font-weight: 700; font-size: clamp(1.2rem, 5.6vw, 1.55rem); }
+  .stat-line svg { width: 22px; height: 22px; flex-shrink: 0; }
+  .stat-line small { color: var(--sub); font-weight: 600; }
+  .bar { position: relative; height: 9px; background: rgba(255,255,255,.14); border-radius: 3px; margin: 8px 0 2px; overflow: hidden; }
+  .bar-fill { position: absolute; inset: 0 auto 0 0; width: 0%; background: linear-gradient(90deg, #00a6ff, var(--cyan)); box-shadow: 0 0 10px var(--cyan); border-radius: 3px; transition: width .6s; }
+  .bar-pct { text-align: right; font-size: .9rem; color: var(--cyan); font-weight: 700; }
+  .two { display: flex; gap: 24px; margin-top: 10px; }
+  .divider { height: 1px; background: var(--line); margin: 12px 0 10px; }
+  .section-title { font-family: var(--cond); font-weight: 800; font-size: 1.2rem; letter-spacing: .6px; text-transform: uppercase; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
+  .live-dot { font-family: Barlow; font-size: .78rem; font-weight: 700; color: var(--sub); display: flex; align-items: center; gap: 5px; letter-spacing: .3px; }
+  .live-dot i { width: 7px; height: 7px; border-radius: 50%; background: var(--sub); display: inline-block; }
+  .live-dot.on { color: var(--green); } .live-dot.on i { background: var(--green); box-shadow: 0 0 8px var(--green); }
+  .live-dot.pause { color: var(--orange); } .live-dot.pause i { background: var(--orange); }
+  .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; }
+  .m-label { font-size: .85rem; color: var(--sub); font-weight: 600; }
+  .m-val { font-family: var(--cond); font-weight: 800; font-size: clamp(1.9rem, 9.5vw, 2.6rem); line-height: 1.05; }
+  .m-val small { font-size: .95rem; font-weight: 700; color: var(--cyan); margin-left: 2px; }
+  .m-val.hr small { color: var(--red); }
+  .tap { cursor: pointer; }
+
+  .side { flex: 1; min-height: 0; overflow: hidden; display: flex; justify-content: flex-end; align-items: flex-start; }
+  .minimap { height: min(100%, 200px); aspect-ratio: 1; border-radius: 16px; overflow: hidden; border: 1px solid var(--line); background: var(--glass-strong); position: relative; box-shadow: 0 8px 24px rgba(0,0,0,.45); display: none; }
+  .minimap.show { display: block; }
+  .minimap.big { position: fixed; inset: 70px 16px calc(var(--nav-h) + 16px) 16px; width: auto; max-width: none; aspect-ratio: auto; z-index: 20; }
+  .minimap .map-el, .minimap svg.fallback { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .map-close { position: absolute; top: 8px; right: 8px; z-index: 500; display: none; }
+  .minimap.big .map-close { display: grid; }
+  .leaflet-container { background: #1a2233; font: inherit; }
+  .me-dot { width: 16px; height: 16px; border-radius: 50%; background: var(--cyan); border: 3px solid #fff; box-shadow: 0 0 14px var(--cyan); }
+
+  .bottom { display: flex; flex-direction: column; gap: 10px; }
+  .hud { display: none; justify-content: space-around; background: var(--glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--line); border-radius: 16px; padding: 8px 4px; }
+  .hud div { text-align: center; } .hud b { font-family: var(--cond); font-size: 1.7rem; display: block; line-height: 1; } .hud span { font-size: .65rem; color: var(--sub); }
+  .focus .card, .focus .side { opacity: 0; pointer-events: none; transform: translateY(-8px); }
+  .focus .hud { display: flex; }
+
+  .speed-ctl { display: none; align-items: center; justify-content: center; gap: 14px; }
+  .speed-ctl.show { display: flex; }
+  .sbtn { width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line); background: var(--glass); backdrop-filter: blur(10px); font-size: 1.4rem; font-weight: 700; }
+  .speed-target { font-family: var(--cond); font-weight: 800; font-size: 1.1rem; min-width: 110px; text-align: center; background: var(--glass); border: 1px solid var(--line); padding: 8px 12px; border-radius: 14px; }
+
+  .actions { display: flex; align-items: center; gap: 12px; justify-content: space-between; }
+  .round { width: 66px; height: 66px; flex-shrink: 0; border-radius: 50%; background: rgba(6,16,24,.75); border: 2px solid var(--green); box-shadow: 0 0 14px rgba(0,255,156,.35), inset 0 0 12px rgba(0,255,156,.15); font-family: var(--cond); font-weight: 800; font-size: .68rem; text-transform: uppercase; line-height: 1.05; letter-spacing: .3px; }
+  .round.blue { border-color: #2f8bff; box-shadow: 0 0 14px rgba(47,139,255,.45), inset 0 0 12px rgba(47,139,255,.15); }
+  .round.red { border-color: var(--red); box-shadow: 0 0 14px rgba(255,77,109,.45); color: #ffd5dd; }
+  .primary { flex: 1; height: 58px; border-radius: 30px; background: rgba(6,18,28,.7); border: 2px solid var(--cyan); box-shadow: 0 0 18px var(--cyan-soft), inset 0 0 14px rgba(0,229,255,.18); display: flex; align-items: center; justify-content: center; gap: 10px; font-family: var(--cond); font-weight: 800; font-size: 1.15rem; letter-spacing: .8px; text-transform: uppercase; padding: 0 8px 0 18px; }
+  .primary .chev { width: 34px; height: 34px; border-radius: 50%; background: rgba(0,229,255,.22); display: grid; place-items: center; margin-left: auto; }
+  .primary .label { margin-left: auto; white-space: nowrap; font-size: clamp(.9rem, 4.2vw, 1.15rem); }
+  .primary.go { border-color: var(--green); box-shadow: 0 0 18px rgba(0,255,156,.4), inset 0 0 14px rgba(0,255,156,.15); }
+  .primary.go .chev { background: rgba(0,255,156,.22); }
+  .primary.warn { border-color: var(--orange); box-shadow: 0 0 18px rgba(255,176,32,.4); }
+  .primary.warn .chev { background: rgba(255,176,32,.22); }
+
+  /* ---------- Música ---------- */
+  .music { background: var(--glass-strong); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; display: none; }
+  .music.show { display: block; }
+  .music iframe { display: block; width: 100%; height: 80px; border: 0; }
+  .sp-bar { display: flex; align-items: center; gap: 10px; padding: 8px 10px; }
+  .sp-art { width: 44px; height: 44px; border-radius: 8px; background: #222 center/cover; flex-shrink: 0; }
+  .sp-meta { flex: 1; min-width: 0; }
+  .sp-title { font-weight: 700; font-size: .9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sp-artist { font-size: .75rem; color: var(--sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sp-ctl { display: flex; gap: 2px; }
+  .sp-ctl button { width: 36px; height: 36px; border-radius: 50%; background: none; border: 0; display: grid; place-items: center; }
+  .sp-ctl button.main { background: var(--spotify); color: #000; }
+  .sp-ctl svg { width: 18px; height: 18px; }
+
+  /* ---------- Navegação ---------- */
+  .nav { position: absolute; left: 0; right: 0; bottom: 0; height: calc(var(--nav-h) + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom); background: rgba(8,11,20,.94); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-top: 1px solid var(--line); display: flex; z-index: 30; }
+  .nav button { flex: 1; background: none; border: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: var(--sub); font-size: .7rem; font-weight: 600; }
+  .nav button svg { width: 22px; height: 22px; }
+  .nav button.active { color: #fff; }
+  .nav button.active svg { filter: drop-shadow(0 0 6px var(--cyan)); color: var(--cyan); }
+
+  /* ---------- Ecrãs secundários ---------- */
+  .screen { position: absolute; inset: 0; bottom: var(--nav-h); background: #070a13; z-index: 25; overflow-y: auto; padding: max(18px, env(safe-area-inset-top)) 16px 24px; display: none; }
+  .screen.open { display: block; }
+  .screen h1 { font-family: var(--cond); font-weight: 800; font-size: 1.7rem; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 4px; }
+  .screen .lead { color: var(--sub); font-size: .85rem; margin-bottom: 16px; }
+  .screen h2 { font-family: var(--cond); font-weight: 800; font-size: 1.05rem; text-transform: uppercase; letter-spacing: .5px; color: var(--cyan); margin: 22px 0 10px; }
+  .panel { background: var(--glass); border: 1px solid var(--line); border-radius: 16px; padding: 14px; }
+  .panel + .panel { margin-top: 10px; }
+  .route-item { display: flex; gap: 12px; align-items: center; }
+  .route-item .route-thumb { width: 64px; height: 64px; }
+  .route-item .info { flex: 1; min-width: 0; }
+  .route-item .t { font-family: var(--cond); font-weight: 800; font-size: 1.12rem; }
+  .route-item .d { color: var(--sub); font-size: .78rem; margin-top: 2px; }
+  .route-item .km { color: var(--cyan); font-family: var(--cond); font-weight: 800; font-size: 1.05rem; }
+    .panel.current { border-color: var(--cyan); box-shadow: 0 0 14px var(--cyan-soft); }
+  .route-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .chip { background: rgba(255,255,255,.07); border: 1px solid var(--line); border-radius: 20px; padding: 8px 12px; font-size: .8rem; font-weight: 600; }
+  .chip.accent { border-color: var(--cyan); color: var(--cyan); }
+  .chip.danger { border-color: rgba(255,77,109,.5); color: #ff9db0; }
+  .chip.sp { border-color: var(--spotify); color: var(--spotify); }
+  .field { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,.07); }
+  .field:last-child { border-bottom: 0; }
+  .field label { font-size: .9rem; }
+  .field label small { display: block; color: var(--sub); font-size: .74rem; margin-top: 2px; }
+  .field input[type=number], .field input[type=text], .field select { background: rgba(255,255,255,.06); border: 1px solid var(--line); color: #fff; border-radius: 10px; padding: 8px 10px; width: 110px; text-align: right; }
+  .field input[type=text].wide { width: 100%; text-align: left; }
+  .field.col { flex-direction: column; align-items: stretch; }
+  .switch { position: relative; width: 48px; height: 28px; flex-shrink: 0; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .switch span { position: absolute; inset: 0; background: rgba(255,255,255,.15); border-radius: 14px; transition: .2s; }
+  .switch span::after { content: ""; position: absolute; width: 22px; height: 22px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: .2s; }
+  .switch input:checked + span { background: var(--cyan); }
+  .switch input:checked + span::after { transform: translateX(20px); }
+  .dev-row { display: flex; align-items: center; gap: 10px; }
+  .dev-row .st { flex: 1; font-size: .85rem; } .dev-row .st small { display: block; color: var(--sub); font-size: .74rem; }
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .stats-grid .panel { margin: 0 !important; }
+  .stats-grid b { font-family: var(--cond); font-size: 1.6rem; display: block; }
+  .stats-grid span { font-size: .75rem; color: var(--sub); }
+  .hist-item { display: flex; justify-content: space-between; gap: 10px; align-items: center; }
+  .hist-item .t { font-weight: 700; font-size: .92rem; }
+  .hist-item .d { color: var(--sub); font-size: .76rem; margin-top: 2px; }
+  .hist-item .v { text-align: right; font-family: var(--cond); font-weight: 800; font-size: 1.15rem; color: var(--cyan); }
+  .hist-item .v small { display: block; font-family: Barlow; font-weight: 500; color: var(--sub); font-size: .72rem; }
+  .week { display: flex; align-items: flex-end; gap: 6px; height: 90px; margin-top: 6px; }
+  .week div { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; justify-content: flex-end; }
+  .week i { width: 100%; max-width: 26px; background: linear-gradient(180deg, var(--cyan), #0066ff); border-radius: 6px 6px 2px 2px; min-height: 3px; }
+  .week span { font-size: .65rem; color: var(--sub); }
+  .empty { color: var(--sub); text-align: center; padding: 24px 10px; font-size: .9rem; }
+  .note { font-size: .78rem; color: var(--sub); line-height: 1.45; margin-top: 8px; }
+  .note code { background: rgba(255,255,255,.08); padding: 1px 5px; border-radius: 5px; font-size: .74rem; word-break: break-all; }
+  .pl-list { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; max-height: 280px; overflow-y: auto; }
+  .pl-item { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,.05); border: 1px solid var(--line); border-radius: 12px; padding: 6px; text-align: left; }
+  .pl-item i { width: 40px; height: 40px; border-radius: 6px; background: #333 center/cover; flex-shrink: 0; }
+  .pl-item span { font-size: .85rem; font-weight: 600; }
+
+  /* ---------- Diálogo / toast ---------- */
+  .dialog { position: fixed; inset: 0; background: rgba(0,0,0,.65); z-index: 50; display: none; align-items: center; justify-content: center; padding: 20px; }
+  .dialog.open { display: flex; }
+  .dialog .box { width: 100%; max-width: 380px; background: #0f1524; border: 1px solid rgba(0,229,255,.35); border-radius: 22px; padding: 20px; box-shadow: 0 0 40px rgba(0,229,255,.15); }
+  .dialog h3 { font-family: var(--cond); font-weight: 800; font-size: 1.5rem; text-transform: uppercase; }
+  .dialog .sum { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; }
+  .dialog .sum b { font-family: var(--cond); font-size: 1.5rem; display: block; }
+  .dialog .sum span { font-size: .75rem; color: var(--sub); }
+  .dialog .row { display: flex; gap: 10px; }
+  .dialog .row button { flex: 1; padding: 13px; border-radius: 14px; border: 1px solid var(--line); background: rgba(255,255,255,.06); font-weight: 700; }
+  .dialog .row button.ok { background: var(--cyan); color: #001; border: 0; }
+  .toast { position: fixed; left: 50%; bottom: calc(var(--nav-h) + 20px); transform: translate(-50%, 20px); background: #121a2c; border: 1px solid var(--line); padding: 10px 16px; border-radius: 14px; font-size: .85rem; z-index: 60; opacity: 0; transition: .25s; pointer-events: none; max-width: 90vw; text-align: center; }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  @media (max-height: 700px) {
+    .m-val { font-size: 1.6rem; }
+    .stat-line { font-size: 1.1rem; }
+    .round { width: 58px; height: 58px; font-size: .62rem; }
+    .primary { height: 52px; font-size: 1.05rem; }
+    .card { padding: 11px; }
+    .route-row { margin: 4px 0 6px; }
+  }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <div class="bg-photo" id="bgPhoto"></div>
+  <div class="bg-video" id="bgVideo"><div id="ytHost"></div></div>
+  <div class="shade"></div>
+
+  <!-- ================= INÍCIO ================= -->
+  <main class="home" id="home">
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo">
+          <svg viewBox="0 0 40 40" width="34" height="34"><defs><linearGradient id="lg" x1="0" x2="1"><stop offset="0" stop-color="#00e5ff"/><stop offset="1" stop-color="#00ff9c"/></linearGradient></defs><path d="M4 6 L20 34 L36 6 L28 6 L20 21 L12 6 Z" fill="url(#lg)"/></svg>
+        </div>
+        <div>
+          <div class="brand-title">VIRTUAL WALK</div>
+          <div class="brand-sub" id="brandSub">Percursos de Lisboa</div>
+        </div>
+      </div>
+      <div class="top-icons">
+        <button class="icon-btn" id="btnFocus" title="Modo vista" aria-label="Modo vista"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        <button class="icon-btn" id="btnMusic" title="Música" aria-label="Música"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></button>
+        <button class="icon-btn" id="btnMap" title="Mini-mapa" aria-label="Mini-mapa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></button>
+      </div>
+    </div>
+
+    <div class="mid">
+      <section class="card" id="card">
+        <div class="card-head">
+          <div class="clock" id="clock">--:--</div>
+          <button class="fav-btn" id="btnFav" aria-label="Favorito"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></svg></button>
+        </div>
+        <div class="route-row">
+          <div class="route-thumb" id="routeThumb"></div>
+          <div>
+            <div class="route-name" id="routeName">—</div>
+            <div class="route-loc" id="routeLoc">—</div>
+          </div>
+        </div>
+        <div class="stat-line"><svg viewBox="0 0 24 24" fill="none" stroke="#00ff9c" stroke-width="2.2"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><span id="distTxt">0,00 km</span><small>/ <span id="routeKmTxt">— km</span></small></div>
+        <div class="bar"><div class="bar-fill" id="barFill"></div></div>
+        <div class="bar-pct" id="barPct">0%</div>
+        <div class="stat-line" style="margin-top:4px"><svg viewBox="0 0 24 24" fill="none" stroke="#00ff9c" stroke-width="2.2"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6"/></svg><span id="timeTxt">00:00</span><small>/ <span id="etaTxt">— min</span></small></div>
+        <div class="two">
+          <div class="stat-line"><svg viewBox="0 0 24 24" fill="none" stroke="#00e5ff" stroke-width="2.2"><path d="M4 15a8 8 0 1 1 16 0"/><path d="m12 15 4-5"/></svg><span id="speedTxt">0,0</span><small>km/h</small></div>
+          <div class="stat-line"><svg viewBox="0 0 24 24" fill="#00e5ff"><path d="M12 2s6 6 6 12a6 6 0 0 1-12 0c0-3 2-5 2-5s0 3 2 4c0-5 2-11 2-11z"/></svg><span id="kcalTxt">0</span><small>kcal</small></div>
+        </div>
+        <div class="divider"></div>
+        <div class="section-title">Caminhada <span class="live-dot" id="liveDot"><i></i><span id="liveTxt">PARADO</span></span></div>
+        <div class="metrics">
+          <div><div class="m-label">Passos</div><div class="m-val" id="stepsTxt">0</div></div>
+          <div class="tap" id="hrBox"><div class="m-label">Ritmo cardíaco</div><div class="m-val hr"><span id="hrTxt">--</span><small>BPM</small></div></div>
+          <div><div class="m-label">Inclinação do percurso</div><div class="m-val" id="gradeTxt">--</div></div>
+          <div><div class="m-label">Ritmo</div><div class="m-val"><span id="paceTxt">--'--"</span><small>/km</small></div></div>
+        </div>
+      </section>
+
+      <aside class="side">
+        <div class="minimap" id="minimap">
+          <div class="map-el" id="mapEl"></div>
+          <button class="icon-btn map-close" id="mapClose" aria-label="Fechar mapa">✕</button>
+        </div>
+      </aside>
+    </div>
+
+    <div class="bottom">
+      <div class="hud" id="hud">
+        <div><b id="hudDist">0,00</b><span>km</span></div>
+        <div><b id="hudTime">00:00</b><span>tempo</span></div>
+        <div><b id="hudSpeed">0,0</b><span>km/h</span></div>
+        <div><b id="hudHr">--</b><span>BPM</span></div>
+      </div>
+
+      <div class="music" id="music"></div>
+
+      <div class="speed-ctl" id="speedCtl">
+        <button class="sbtn" id="spdDown" aria-label="Diminuir velocidade">−</button>
+        <div class="speed-target" id="spdTarget">0,0 km/h</div>
+        <button class="sbtn" id="spdUp" aria-label="Aumentar velocidade">+</button>
+      </div>
+
+      <div class="actions">
+        <button class="round" id="btnLeft">Defini-<br>ções</button>
+        <button class="primary" id="btnMain"><span class="label" id="mainLabel">Ligar passadeira</span><span class="chev" id="mainIcon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#fff" stroke-width="2.6"><path d="m9 6 6 6-6 6"/></svg></span></button>
+        <button class="round blue" id="btnRight">Explorar<br>rotas</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- ================= ROTAS ================= -->
+  <section class="screen" id="scr-routes">
+    <h1>Rotas</h1>
+    <p class="lead">Percursos reais em Lisboa. Toque numa rota para a escolher. O vídeo acompanha a velocidade da passadeira.</p>
+    <div id="routeList"></div>
+    <p class="note">Em cada rota pode trocar o vídeo por outro do YouTube (cole o link) ou por um vídeo guardado no telemóvel. Os vídeos sugeridos são passeios a pé de canais do YouTube; se algum deixar de estar disponível, aparece a fotografia da rota.</p>
+    <input type="file" id="videoFile" accept="video/*" hidden>
+  </section>
+
+  <!-- ================= ATIVIDADE ================= -->
+  <section class="screen" id="scr-activity">
+    <h1>Atividade</h1>
+    <p class="lead">Histórico guardado apenas neste telemóvel.</p>
+    <div class="stats-grid" id="statsGrid"></div>
+    <h2>Últimos 7 dias</h2>
+    <div class="panel"><div class="week" id="weekChart"></div></div>
+    <h2>Sessões</h2>
+    <div id="histList"></div>
+  </section>
+
+  <!-- ================= PERFIL ================= -->
+  <section class="screen" id="scr-profile">
+    <h1>Perfil e definições</h1>
+    <p class="lead">Os dados ficam guardados apenas neste telemóvel.</p>
+
+    <h2>Os seus dados</h2>
+    <div class="panel">
+      <div class="field"><label>Peso<small>Usado para calcular as calorias</small></label><input type="number" id="setWeight" min="30" max="250" step="0.5"></div>
+      <div class="field"><label>Altura (cm)<small>Usada para estimar o comprimento da passada</small></label><input type="number" id="setHeight" min="120" max="230"></div>
+    </div>
+
+    <h2>Dispositivos</h2>
+    <div class="panel">
+      <div class="dev-row"><div class="st">Passadeira WalkingPad<small id="tmStatus">Desligada</small></div><button class="chip accent" id="tmBtn">Ligar</button></div>
+      <p class="note">A passadeira só aceita uma ligação Bluetooth de cada vez. Se a KS Fit estiver ligada a ela, esta app não a encontra. Para não perder registos, exporte cada caminhada em Atividade (TCX ou GPX) para a app que usa.</p>
+    </div>
+    <div class="panel">
+      <div class="dev-row"><div class="st">Relógio ou cinta cardíaca<small id="hrStatus">Desligado</small></div><button class="chip accent" id="hrBtn">Ligar</button></div>
+      <p class="note"><b>Huawei Watch GT 3:</b> no relógio abra <i>Treino</i>, deslize até <i>Definições</i> e ative <i>Transmissão de dados de FC</i> (HR data broadcasts). Comece um treino no relógio (por exemplo Caminhada interior) e só depois toque em “Ligar”.</p>
+    </div>
+
+    <h2>Caminhada</h2>
+    <div class="panel">
+      <div class="field"><label>Iniciar automaticamente<small>Começa a contar quando a passadeira arranca</small></label><label class="switch"><input type="checkbox" id="setAutoStart"><span></span></label></div>
+      <div class="field"><label>Controlar a passadeira pela app<small>Os botões arrancam/param o tapete e ajustam a velocidade</small></label><label class="switch"><input type="checkbox" id="setControl"><span></span></label></div>
+      <div class="field"><label>Ecrã sempre ligado<small>Impede que o ecrã se apague durante a caminhada</small></label><label class="switch"><input type="checkbox" id="setWake"><span></span></label></div>
+      <div class="field"><label>Velocidade do vídeo original<small>Velocidade (km/h) a que o vídeo foi gravado. A 5 km/h na passadeira, um vídeo de 5 km/h passa à velocidade normal.</small></label><input type="number" id="setRef" min="2" max="8" step="0.5"></div>
+      <div class="field"><label>Som ambiente do vídeo<small>Desligue para ouvir só a música</small></label><label class="switch"><input type="checkbox" id="setVideoSound"><span></span></label></div>
+      <div class="field"><label>Modo demonstração<small>Simula a passadeira para experimentar a app</small></label><label class="switch"><input type="checkbox" id="setDemo"><span></span></label></div>
+    </div>
+
+    <h2>Spotify</h2>
+    <div class="panel">
+      <div class="field col">
+        <label>Leitor dentro da app (opcional)<small>Pode simplesmente abrir o Spotify antes e deixá-lo a tocar por trás: o vídeo das rotas não tem som e não o interrompe. Se preferir um leitor aqui, cole o link de uma playlist (Partilhar → Copiar link).</small></label>
+        <input type="text" class="wide" id="setSpLink" placeholder="https://open.spotify.com/playlist/...">
+      </div>
+      <div class="route-actions">
+        <button class="chip sp" id="spOpenApp">Abrir app Spotify</button>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="field col">
+        <label>Controlo da app Spotify (Premium)<small>Mostra a música que está a tocar e permite pausar, saltar e escolher playlists sem sair da app.</small></label>
+        <input type="text" class="wide" id="setSpClient" placeholder="Client ID do Spotify">
+      </div>
+      <div class="route-actions" id="spAuthActions"></div>
+      <div class="pl-list" id="spPlaylists"></div>
+      <p class="note">Configuração (uma vez): em <b>developer.spotify.com/dashboard</b> crie uma app, escolha “Web API” e em <i>Redirect URIs</i> adicione exatamente este endereço: <code id="spRedirect"></code>. Copie o <i>Client ID</i> para o campo acima e toque em “Ligar ao Spotify”. Requer que a app esteja aberta num endereço https (por exemplo GitHub Pages ou Netlify).</p>
+    </div>
+
+    <h2>Dados</h2>
+    <div class="panel">
+      <div class="route-actions">
+        <button class="chip" id="exportBtn">Exportar histórico (CSV)</button>
+        <button class="chip danger" id="clearBtn">Apagar histórico</button>
+      </div>
+    </div>
+    <p class="note" style="text-align:center;margin-top:20px">Virtual Walk · WalkingPad R3 Hybrid · Chrome para Android</p>
+  </section>
+
+  <!-- ================= NAVEGAÇÃO ================= -->
+  <nav class="nav" id="nav">
+    <button data-scr="home" class="active"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3 2 11h3v9h5v-6h4v6h5v-9h3z"/></svg>Início</button>
+    <button data-scr="routes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="6" r="2.5"/><path d="M8.5 18H16a3 3 0 0 0 0-6H8a3 3 0 0 1 0-6h7.5"/></svg>Rotas</button>
+    <button data-scr="activity"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>Atividade</button>
+    <button data-scr="profile"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4.5"/><path d="M3 21c0-5 4-8 9-8s9 3 9 8z"/></svg>Perfil</button>
+  </nav>
+
+  <!-- ================= DIÁLOGOS ================= -->
+  <div class="dialog" id="dlgEnd">
+    <div class="box">
+      <h3>Terminar caminhada?</h3>
+      <div class="sum" id="endSum"></div>
+      <div class="row"><button id="endCancel">Continuar</button><button class="ok" id="endOk">Terminar e guardar</button></div>
+    </div>
+  </div>
+  <div class="dialog" id="dlgYt">
+    <div class="box">
+      <h3>Vídeo do YouTube</h3>
+      <p class="note">Cole o link de um vídeo de caminhada (POV) para esta rota.</p>
+      <input type="text" id="ytInput" class="wide" style="width:100%;margin:12px 0;background:rgba(255,255,255,.06);border:1px solid var(--line);color:#fff;border-radius:10px;padding:10px" placeholder="https://youtu.be/...">
+      <div class="row"><button id="ytCancel">Cancelar</button><button class="ok" id="ytOk">Guardar</button></div>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+"use strict";
+/* =====================================================================
+   Virtual Walk · WalkingPad R3 Hybrid
+   ===================================================================== */
+
+const $ = (id) => document.getElementById(id);
+const fmt1 = (n) => n.toFixed(1).replace('.', ',');
+const fmt2 = (n) => n.toFixed(2).replace('.', ',');
+const pad = (n) => String(Math.floor(n)).padStart(2, '0');
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+function fmtTime(sec) { sec = Math.max(0, Math.round(sec)); const h = Math.floor(sec / 3600), m = Math.floor(sec % 3600 / 60), s = sec % 60; return h ? `${h}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`; }
+function fmtPace(kmh) { if (!kmh || kmh < 0.5) return `--'--"`; const p = 60 / kmh; let m = Math.floor(p), s = Math.round((p - m) * 60); if (s === 60) { m++; s = 0; } return `${m}'${pad(s)}"`; }
+function toast(msg, ms = 2600) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), ms); }
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('vw_' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem('vw_' + k, JSON.stringify(v)); } catch (e) {} }
+};
+
+/* ---------------- Definições ---------------- */
+const DEFAULTS = { weight: 70, height: 170, autoStart: true, control: false, wake: true, ref: 5, videoSound: false, demo: false,
+  spLink: '', spClient: '' };
+const settings = Object.assign({}, DEFAULTS, store.get('settings', {}));
+if (settings.spLink === 'https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M') settings.spLink = '';
+function saveSettings() { store.set('settings', settings); }
+
+/* ---------------- Rotas ---------------- */
+const ROUTES = [
+  { id: 'alfama', emoji: '🚋', name: 'Elétrico 28 & Alfama', loc: 'Lisboa, PT', desc: 'Martim Moniz, Graça, Sé, Chiado e Estrela',
+    yt: 'i-5v3JLmqJY',
+    pts: [[38.7163,-9.1357],[38.7172,-9.1335],[38.7170,-9.1313],[38.7158,-9.1300],[38.7150,-9.1283],[38.7130,-9.1290],[38.7118,-9.1302],[38.7106,-9.1318],[38.7098,-9.1335],[38.7100,-9.1365],[38.7104,-9.1400],[38.7107,-9.1435],[38.7115,-9.1475],[38.7125,-9.1530],[38.7136,-9.1597],[38.7148,-9.1683]] },
+  { id: 'tejo', emoji: '🌉', name: 'Parque Tejo & Ponte Vasco da Gama', loc: 'Parque das Nações, Lisboa', desc: 'Passeio ribeirinho até ao Trancão, ida e volta',
+    yt: 'bQS9JhND4_w',
+    pts: [[38.7678,-9.0990],[38.7690,-9.0955],[38.7740,-9.0935],[38.7790,-9.0928],[38.7830,-9.0922],[38.7870,-9.0915],[38.7930,-9.0925],[38.7870,-9.0915],[38.7830,-9.0922],[38.7790,-9.0928],[38.7740,-9.0935],[38.7690,-9.0955],[38.7678,-9.0990]] },
+  { id: 'belem', emoji: '⛵', name: 'Ribeira das Naus a Belém', loc: 'Belém, Lisboa', desc: 'Cais do Sodré, MAAT, Padrão e Torre de Belém',
+    yt: 'QTNK9AskpWU',
+    pts: [[38.7075,-9.1365],[38.7067,-9.1410],[38.7056,-9.1446],[38.7050,-9.1500],[38.7045,-9.1560],[38.7030,-9.1650],[38.7015,-9.1720],[38.6990,-9.1800],[38.6970,-9.1880],[38.6957,-9.1935],[38.6945,-9.2000],[38.6937,-9.2057],[38.6925,-9.2110],[38.6916,-9.2160]] },
+  { id: 'nacoes', emoji: '🏙️', name: 'Parque das Nações', loc: 'Oriente, Lisboa', desc: 'Marina, Oceanário e Torre Vasco da Gama (circuito)',
+    yt: 'hznExEueS6A',
+    pts: [[38.7678,-9.0990],[38.7700,-9.0965],[38.7740,-9.0935],[38.7700,-9.0928],[38.7660,-9.0930],[38.7635,-9.0925],[38.7600,-9.0935],[38.7560,-9.0948],[38.7575,-9.0985],[38.7620,-9.0985],[38.7678,-9.0990]] }
+];
+const routeVideo = store.get('routeVideo', {});
+// A imagem de cada rota é um fotograma do próprio vídeo (alta resolução quando existe)
+const imgCache = {};
+function routeYt(r) { const vc = routeVideo[r.id]; return vc && vc.type === 'yt' ? vc.id : r.yt; }
+function routeImg(r) { const id = routeYt(r); return imgCache[id] || `https://i.ytimg.com/vi/${id}/mqdefault.jpg`; }
+function preloadImg(r) {
+  const id = routeYt(r); if (imgCache[id]) return;
+  const im = new Image();
+  im.onload = () => { if (im.naturalWidth > 320) { imgCache[id] = im.src; if (typeof render === 'function') { if (r === currentRoute) $('bgPhoto').style.backgroundImage = `url('${im.src}')`; render(); if ($('scr-routes').classList.contains('open')) renderRoutes(); } } };
+  im.src = `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`;
+}   // { id: {type:'yt', id} | {type:'file', name} }
+let favs = store.get('favs', []);
+let currentRoute = ROUTES.find(r => r.id === store.get('route', 'alfama')) || ROUTES[0];
+
+function hav(a, b) { const R = 6371, dLat = (b[0]-a[0])*Math.PI/180, dLng = (b[1]-a[1])*Math.PI/180;
+  const x = Math.sin(dLat/2)**2 + Math.cos(a[0]*Math.PI/180)*Math.cos(b[0]*Math.PI/180)*Math.sin(dLng/2)**2; return 2*R*Math.asin(Math.sqrt(x)); }
+function prepGeom(r) { r.geom = r.geom || r.pts; r.cum = [0]; for (let i = 1; i < r.geom.length; i++) r.cum.push(r.cum[i-1] + hav(r.geom[i-1], r.geom[i])); r.km = r.cum[r.cum.length-1]; }
+ROUTES.forEach(r => { const g = store.get('geom_' + r.id, null); if (g) r.geom = g; r.elev = store.get('elev_' + r.id, null); prepGeom(r); });
+function posAt(r, km) { km = clamp(km, 0, r.km); let i = 1; while (i < r.cum.length - 1 && r.cum[i] < km) i++;
+  const seg = r.cum[i] - r.cum[i-1] || 1, f = (km - r.cum[i-1]) / seg, a = r.geom[i-1], b = r.geom[i]; return [a[0] + (b[0]-a[0])*f, a[1] + (b[1]-a[1])*f]; }
+function elevAt(r, km) { if (!r.elev) return null; const e = r.elev, step = r.km / (e.length - 1), x = clamp(km / step, 0, e.length - 1), i = Math.floor(x), f = x - i;
+  return i >= e.length - 1 ? e[e.length-1] : e[i] + (e[i+1]-e[i])*f; }
+function gradeAt(r, km) { if (!r.elev) return null; const a = Math.max(0, km - 0.05), b = Math.min(r.km, km + 0.05); if (b - a < 0.01) return 0; return (elevAt(r, b) - elevAt(r, a)) / ((b - a) * 1000) * 100; }
+
+// Ajusta o traçado às ruas (OSRM a pé) e obtém a altimetria real (Open-Meteo). Fica em cache.
+async function enrichRoute(r) {
+  try {
+    if (!store.get('geom_' + r.id, null)) {
+      const coords = r.pts.map(p => `${p[1]},${p[0]}`).join(';');
+      const res = await fetch(`https://routing.openstreetmap.de/routed-foot/route/v1/foot/${coords}?overview=full&geometries=geojson`);
+      const j = await res.json();
+      if (j.routes && j.routes[0]) {
+        let g = j.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+        if (g.length > 600) { const k = Math.ceil(g.length / 600); g = g.filter((_, i) => i % k === 0 || i === g.length - 1); }
+        r.geom = g; store.set('geom_' + r.id, g); store.set('elev_' + r.id, null); r.elev = null; prepGeom(r);
+      }
+    }
+  } catch (e) {}
+  try {
+    if (!r.elev) {
+      const n = clamp(Math.round(r.km * 10) + 1, 10, 200), lats = [], lngs = [];
+      for (let i = 0; i < n; i++) { const p = posAt(r, r.km * i / (n - 1)); lats.push(p[0].toFixed(5)); lngs.push(p[1].toFixed(5)); }
+      let elev = [];
+      for (let s = 0; s < n; s += 100) {
+        const res = await fetch(`https://api.open-meteo.com/v1/elevation?latitude=${lats.slice(s, s+100).join(',')}&longitude=${lngs.slice(s, s+100).join(',')}`);
+        const j = await res.json(); if (!j.elevation) throw 0; elev = elev.concat(j.elevation);
+      }
+      // suaviza ligeiramente
+      r.elev = elev.map((v, i) => (elev[Math.max(0,i-1)] + v*2 + elev[Math.min(elev.length-1,i+1)]) / 4);
+      store.set('elev_' + r.id, r.elev);
+    }
+  } catch (e) {}
+  if (r === currentRoute) { drawRouteOnMap(); render(); }
+}
+
+/* ---------------- Estado da sessão ---------------- */
+const S = {
+  state: 'idle',          // idle | running | paused
+  dist: 0, steps: 0, sec: 0, kcal: 0, hrSum: 0, hrN: 0, hrMax: 0, startedAt: null,
+  speed: 0, hr: null, targetSpeed: 0
+};
+let progress = store.get('progress', {});   // km percorridos em cada rota (acumulado)
+function routeKmDone() { return (progress[currentRoute.id] || 0); }
+
+/* ---------------- Interface: render ---------------- */
+function render() {
+  const r = currentRoute, done = routeKmDone(), lapPos = r.km ? done % r.km : 0, laps = r.km ? Math.floor(done / r.km) : 0;
+  $('routeName').textContent = r.name; $('routeLoc').textContent = r.loc; $('brandSub').textContent = r.loc.replace(', PT', '');
+  $('routeThumb').style.backgroundImage = `url('${routeImg(r)}')`;
+  $('routeKmTxt').textContent = `${fmt1(r.km)} km` + (laps ? ` · volta ${laps + 1}` : '');
+  $('distTxt').textContent = `${fmt2(S.dist)} km`;
+  const pct = r.km ? lapPos / r.km * 100 : 0;
+  $('barFill').style.width = pct.toFixed(1) + '%'; $('barPct').textContent = Math.round(pct) + '%';
+  $('timeTxt').textContent = fmtTime(S.sec);
+  const remainKm = r.km - lapPos, sp = S.speed > 0.5 ? S.speed : (S.sec > 30 ? S.dist / (S.sec / 3600) : 0);
+  $('etaTxt').textContent = sp > 0.5 ? `faltam ${Math.round(remainKm / sp * 60)} min` : `${fmt1(r.km)} km`;
+  $('speedTxt').textContent = fmt1(S.speed); $('kcalTxt').textContent = Math.round(S.kcal);
+  $('stepsTxt').textContent = Math.round(S.steps).toLocaleString('pt-PT');
+  $('hrTxt').textContent = S.hr ? S.hr : '--';
+  const g = gradeAt(r, lapPos); $('gradeTxt').textContent = g == null ? '--' : (g >= 0 ? '+' : '') + fmt1(clamp(g, -25, 25)) + '%';
+  $('paceTxt').textContent = fmtPace(S.speed);
+  $('hudDist').textContent = fmt2(S.dist); $('hudTime').textContent = fmtTime(S.sec); $('hudSpeed').textContent = fmt1(S.speed); $('hudHr').textContent = S.hr || '--';
+  const ld = $('liveDot'); ld.className = 'live-dot' + (S.state === 'running' ? (S.speed > 0 ? ' on' : ' pause') : S.state === 'paused' ? ' pause' : '');
+  $('liveTxt').textContent = S.state === 'running' ? (S.speed > 0 ? 'A ANDAR' : 'À ESPERA DO TAPETE') : S.state === 'paused' ? 'EM PAUSA' : 'PARADO';
+  const fav = favs.includes(r.id); $('btnFav').querySelector('path').setAttribute('fill', fav ? '#ff4d6d' : 'none'); $('btnFav').querySelector('svg').setAttribute('stroke', fav ? '#ff4d6d' : '#fff');
+  renderButtons(); updateMapPos(lapPos);
+}
+function renderButtons() {
+  const main = $('btnMain'), left = $('btnLeft'), connected = TM.connected || settings.demo;
+  main.className = 'primary';
+  let label;
+  if (S.state === 'idle') { label = connected ? 'Iniciar caminhada' : 'Ligar passadeira'; if (connected) main.classList.add('go'); }
+  else if (S.state === 'running') { label = 'Pausar'; main.classList.add('warn'); }
+  else { label = 'Retomar'; main.classList.add('go'); }
+  $('mainLabel').textContent = label;
+  $('mainIcon').innerHTML = S.state === 'running'
+    ? '<svg viewBox="0 0 24 24" width="16" height="16" fill="#fff"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>'
+    : '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#fff" stroke-width="2.6"><path d="m9 6 6 6-6 6"/></svg>';
+  if (S.state === 'idle') { left.className = 'round'; left.innerHTML = 'Defini-<br>ções'; }
+  else { left.className = 'round red'; left.innerHTML = 'Termi-<br>nar'; }
+  $('speedCtl').classList.toggle('show', connected && settings.control);
+  $('spdTarget').textContent = `${fmt1(S.targetSpeed)} km/h`;
+  $('tmStatus').textContent = settings.demo ? 'Modo demonstração ativo' : TM.connected ? `Ligada · ${TM.name || 'WalkingPad'} (${TM.proto === 'ftms' ? 'FTMS' : 'WalkingPad'})` : 'Desligada';
+  $('tmBtn').textContent = TM.connected ? 'Desligar' : 'Ligar';
+}
+setInterval(() => { const d = new Date(); $('clock').textContent = `${pad(d.getHours())}:${pad(d.getMinutes())}`; }, 1000);
+
+/* ---------------- Sessão ---------------- */
+function startSession() {
+  Object.assign(S, { state: 'running', dist: 0, steps: 0, sec: 0, kcal: 0, hrSum: 0, hrN: 0, hrMax: 0, startedAt: new Date().toISOString(), track: [], lastPt: 0, routeId: currentRoute.id });
+  if (settings.control) TM.startBelt();
+  wake.on(); musicAuto('play'); render(); toast('Boa caminhada! 🚶');
+}
+function pauseSession() { S.state = 'paused'; if (settings.control) TM.stopBelt(); musicAuto('pause'); render(); }
+function resumeSession() { S.state = 'running'; if (settings.control) TM.startBelt(); musicAuto('play'); render(); }
+function askEnd() {
+  const avg = S.sec ? S.dist / (S.sec / 3600) : 0;
+  $('endSum').innerHTML = [[fmt2(S.dist) + ' km', 'Distância'], [fmtTime(S.sec), 'Tempo em movimento'], [Math.round(S.kcal) + ' kcal', 'Calorias'],
+    [Math.round(S.steps).toLocaleString('pt-PT'), 'Passos'], [fmt1(avg) + ' km/h', 'Velocidade média'], [S.hrN ? Math.round(S.hrSum / S.hrN) + ' BPM' : '--', 'Ritmo cardíaco médio']]
+    .map(([b, s]) => `<div><b>${b}</b><span>${s}</span></div>`).join('');
+  $('dlgEnd').classList.add('open');
+}
+function endSession() {
+  $('dlgEnd').classList.remove('open');
+  if (S.dist > 0.01 || S.sec > 30) {
+    const hist = store.get('history', []);
+    hist.forEach((h, i) => { if (i >= 29) delete h.track; });   // guarda os pontos das 30 sessões mais recentes
+    S.track.push([Date.now(), +(S.dist * 1000).toFixed(1), S.hr || 0, +S.speed.toFixed(2), ...posAt(currentRoute, currentRoute.km ? routeKmDone() % currentRoute.km : 0).map(n => +n.toFixed(6)), Math.round(S.steps)]);
+    hist.unshift({ id: Date.now(), track: S.track, date: S.startedAt, route: currentRoute.name, dist: +S.dist.toFixed(3), sec: Math.round(S.sec), kcal: Math.round(S.kcal), steps: Math.round(S.steps),
+      avg: S.sec ? +(S.dist / (S.sec / 3600)).toFixed(2) : 0, hr: S.hrN ? Math.round(S.hrSum / S.hrN) : null, hrMax: S.hrMax || null });
+    store.set('history', hist.slice(0, 500)); toast('Sessão guardada em Atividade ✓ Pode exportá-la para outra app.', 3500);
+  }
+  if (settings.control) TM.stopBelt();
+  S.state = 'idle'; S.dist = S.steps = S.sec = S.kcal = 0; wake.off(); musicAuto('pause'); render();
+}
+
+// Recebe leituras da passadeira: deltas de distância (km) e passos já calculados
+function onTreadmill({ speed, dDist, dSteps }) {
+  S.speed = speed;
+  if (S.state === 'idle' && speed > 0 && settings.autoStart) startSession();
+  if (S.state === 'running' && dDist > 0) {
+    S.dist += dDist;
+    S.steps += dSteps != null ? dSteps : dDist * 1000 / (settings.height * 0.415 / 100);
+    progress[currentRoute.id] = (progress[currentRoute.id] || 0) + dDist;
+  }
+  video.sync(); render();
+}
+// Relógio da sessão: só conta enquanto o tapete se move
+let lastTick = performance.now(), saveCounter = 0;
+setInterval(() => {
+  const now = performance.now(), dt = Math.min(3, (now - lastTick) / 1000); lastTick = now;
+  if (S.state === 'running' && S.speed > 0) {
+    S.sec += dt;
+    const mmin = S.speed * 1000 / 60, vo2 = S.speed <= 8 ? 3.5 + 0.1 * mmin : 3.5 + 0.2 * mmin;   // ACSM (ml/kg/min)
+    S.kcal += vo2 * settings.weight / 1000 * 5 / 60 * dt;
+    if (S.hr) { S.hrSum += S.hr; S.hrN++; S.hrMax = Math.max(S.hrMax, S.hr); }
+    if (++saveCounter % 10 === 0) store.set('progress', progress);
+    if (Date.now() - S.lastPt >= 5000) { S.lastPt = Date.now(); const r = currentRoute, p = posAt(r, r.km ? routeKmDone() % r.km : 0);
+      S.track.push([Date.now(), +(S.dist * 1000).toFixed(1), S.hr || 0, +S.speed.toFixed(2), +p[0].toFixed(6), +p[1].toFixed(6), Math.round(S.steps)]); }
+    render();
+  }
+}, 1000);
+
+/* ---------------- WalkingPad (Bluetooth) ---------------- */
+const SVC_WP = '0000fe00-0000-1000-8000-00805f9b34fb';
+const TM = {
+  device: null, connected: false, proto: null, name: '', notifyChar: null, writeChar: null, cpChar: null, poll: null, last: null, lastT: 0, queue: Promise.resolve(),
+  async connect() {
+    if (!navigator.bluetooth) { toast(!window.isSecureContext ? 'O Bluetooth só funciona com a app aberta num endereço https (não a partir de um ficheiro).' : 'Este browser não suporta Bluetooth. Use o Chrome no Android.', 5000); return; }
+    try {
+      const device = await navigator.bluetooth.requestDevice({
+        filters: [{ namePrefix: 'KS-' }, { namePrefix: 'WalkingPad' }, { namePrefix: 'Walking' }, { namePrefix: 'R3' }, { services: ['fitness_machine'] }, { services: [SVC_WP] }],
+        optionalServices: [SVC_WP, 'fitness_machine']
+      });
+      this.device = device; this.name = device.name || 'WalkingPad';
+      device.addEventListener('gattserverdisconnected', () => this.onDisconnect());
+      toast('A ligar à passadeira…');
+      const server = await device.gatt.connect();
+      let ok = false;
+      try { await this.setupWalkingPad(server); ok = true; } catch (e) { console.warn('fe00', e); }
+      if (!ok) { await this.setupFTMS(server); }
+      this.connected = true; this.last = null; render(); toast('✓ Passadeira ligada');
+    } catch (e) {
+      console.warn(e);
+      if (e && e.name === 'NotFoundError') return;  // utilizador cancelou
+      toast('Não foi possível ligar. Confirme que a passadeira está ligada e que não está ligada à app KS Fit.', 4500);
+    }
+  },
+  async setupWalkingPad(server) {
+    const svc = await server.getPrimaryService(SVC_WP);
+    const chars = await svc.getCharacteristics();
+    for (const c of chars) {
+      if ((c.properties.notify || c.properties.indicate) && !this.notifyChar) this.notifyChar = c;
+      if ((c.properties.write || c.properties.writeWithoutResponse) && (!this.writeChar || c.uuid.startsWith('0000fe02'))) this.writeChar = c;
+    }
+    if (!this.notifyChar) throw new Error('sem notificações');
+    this.notifyChar.addEventListener('characteristicvaluechanged', (e) => this.parseWP(e.target.value));
+    await this.notifyChar.startNotifications();
+    this.proto = 'wp';
+    // pede o estado ~1x por segundo
+    clearInterval(this.poll); this.poll = setInterval(() => this.send([0xa2, 0x00, 0x00]), 1000);
+  },
+  async setupFTMS(server) {
+    const svc = await server.getPrimaryService('fitness_machine');
+    this.notifyChar = await svc.getCharacteristic(0x2ACD);   // Treadmill Data
+    this.notifyChar.addEventListener('characteristicvaluechanged', (e) => this.parseFTMS(e.target.value));
+    await this.notifyChar.startNotifications();
+    try { this.cpChar = await svc.getCharacteristic(0x2AD9); await this.cpChar.startNotifications(); } catch (e) { this.cpChar = null; }
+    this.proto = 'ftms';
+  },
+  // Pacote WalkingPad: F7 [cmd...] CRC FD (CRC = soma dos bytes do meio)
+  send(body) {
+    if (!this.writeChar) return Promise.resolve();
+    const crc = body.reduce((a, b) => a + b, 0) & 0xff, pkt = new Uint8Array([0xf7, ...body, crc, 0xfd]);
+    this.queue = this.queue.then(() => (this.writeChar.writeValueWithoutResponse && this.writeChar.properties.writeWithoutResponse
+      ? this.writeChar.writeValueWithoutResponse(pkt) : this.writeChar.writeValue(pkt))).catch(() => {});
+    return this.queue;
+  },
+  ftms(bytes) { if (!this.cpChar) return Promise.resolve(); this.queue = this.queue.then(() => this.cpChar.writeValue(new Uint8Array(bytes))).catch(() => {}); return this.queue; },
+  parseWP(v) {
+    // Estado atual: F8 A2 | estado | velocidade | modo | tempo(3) | distância(3, x10 m) | passos(3) | ...
+    if (v.byteLength < 14 || v.getUint8(0) !== 0xf8 || v.getUint8(1) !== 0xa2) return;
+    const u24 = (o) => (v.getUint8(o) << 16) | (v.getUint8(o + 1) << 8) | v.getUint8(o + 2);
+    const speed = v.getUint8(3) / 10, dist = u24(8) / 100, steps = u24(11), belt = v.getUint8(2);
+    this.belt = belt; this.mode = v.getUint8(4);
+    if (S.targetSpeed === 0 && speed > 0) S.targetSpeed = speed;
+    let dDist = 0, dSteps = 0;
+    if (this.last) {
+      dDist = dist - this.last.dist; dSteps = steps - this.last.steps;
+      if (dDist < 0 || dSteps < 0) { dDist = Math.max(0, dist); dSteps = Math.max(0, steps); }   // contador reiniciado
+      if (dDist > 0.2) dDist = 0;            // salto improvável: ignora
+      if (dSteps > 300) dSteps = 0;
+    }
+    this.last = { dist, steps };
+    onTreadmill({ speed, dDist, dSteps });
+  },
+  parseFTMS(v) {
+    // Treadmill Data (0x2ACD)
+    const flags = v.getUint16(0, true); let o = 2, speed = null, total = null;
+    if (!(flags & 0x0001)) { speed = v.getUint16(o, true) / 100; o += 2; }
+    if (flags & 0x0002) o += 2;
+    if (flags & 0x0004) { total = (v.getUint8(o) | (v.getUint8(o + 1) << 8) | (v.getUint8(o + 2) << 16)) / 1000; o += 3; }
+    if (flags & 0x0008) o += 4;
+    if (flags & 0x0010) o += 4;
+    if (flags & 0x0020) o += 1;
+    if (flags & 0x0040) o += 1;
+    if (flags & 0x0080) o += 5;
+    if ((flags & 0x0100) && v.byteLength > o && !HR.connected) { const hr = v.getUint8(o); if (hr > 0) S.hr = hr; }
+    if (speed == null) speed = S.speed;
+    const now = performance.now(); let dDist = 0;
+    if (total != null) {
+      if (this.last != null) { dDist = total - this.last; if (dDist < 0) dDist = total; if (dDist > 0.2) dDist = 0; }
+      this.last = total;
+    } else if (this.lastT) { dDist = speed * Math.min(3, (now - this.lastT) / 1000) / 3600; }
+    this.lastT = now;
+    onTreadmill({ speed, dDist, dSteps: null });
+  },
+  startBelt() {
+    if (settings.demo) { demo.target = S.targetSpeed || 3; return; }
+    if (!this.connected) return;
+    if (this.proto === 'wp') { this.send([0xa2, 0x02, 0x01]); setTimeout(() => this.send([0xa2, 0x04, 0x01]), 300); }
+    else { this.ftms([0x00]).then(() => this.ftms([0x07])); }
+  },
+  stopBelt() {
+    if (settings.demo) { demo.target = 0; return; }
+    if (!this.connected) return;
+    if (this.proto === 'wp') this.send([0xa2, 0x01, 0x00]); else this.ftms([0x00]).then(() => this.ftms([0x08, 0x01]));
+  },
+  setSpeed(kmh) {
+    S.targetSpeed = kmh = clamp(Math.round(kmh * 10) / 10, 0, 12);
+    if (settings.demo) { demo.target = kmh; renderButtons(); return; }
+    if (this.proto === 'wp') { if (this.mode !== 1) this.send([0xa2, 0x02, 0x01]); this.send([0xa2, 0x01, Math.round(kmh * 10)]); }
+    else if (this.proto === 'ftms') { const v = Math.round(kmh * 100); this.ftms([0x00]).then(() => this.ftms([0x02, v & 0xff, v >> 8])); }
+    renderButtons();
+  },
+  disconnect() { clearInterval(this.poll); try { this.device && this.device.gatt.disconnect(); } catch (e) {} this.onDisconnect(); },
+  onDisconnect() {
+    const was = this.connected; clearInterval(this.poll); this.connected = false; this.notifyChar = this.writeChar = this.cpChar = null; this.last = null;
+    S.speed = 0; if (S.state === 'running') S.state = 'paused';
+    video.sync(); render(); if (was) toast('Passadeira desligada. A sessão ficou em pausa.', 4000);
+  }
+};
+
+/* ---------------- Modo demonstração ---------------- */
+const demo = { target: 0, speed: 0, timer: null,
+  set(on) { clearInterval(this.timer); if (on) { this.timer = setInterval(() => this.tick(), 1000); } else { this.speed = 0; } },
+  tick() { this.speed += clamp(this.target - this.speed, -0.5, 0.5); this.speed = Math.round(this.speed * 10) / 10; onTreadmill({ speed: this.speed, dDist: this.speed / 3600, dSteps: null }); }
+};
+
+/* ---------------- Batimento cardíaco ---------------- */
+const HR = { device: null, connected: false,
+  async connect() {
+    if (!navigator.bluetooth) { toast(!window.isSecureContext ? 'O Bluetooth só funciona com a app aberta num endereço https.' : 'Este browser não suporta Bluetooth.', 5000); return; }
+    try {
+      const device = await navigator.bluetooth.requestDevice({ filters: [{ services: ['heart_rate'] }] });
+      this.device = device; device.addEventListener('gattserverdisconnected', () => { this.connected = false; S.hr = null; this.status(); render(); toast('Sensor cardíaco desligado'); });
+      const server = await device.gatt.connect(), svc = await server.getPrimaryService('heart_rate'), ch = await svc.getCharacteristic('heart_rate_measurement');
+      ch.addEventListener('characteristicvaluechanged', (e) => { const v = e.target.value, f = v.getUint8(0); S.hr = (f & 1) ? v.getUint16(1, true) : v.getUint8(1); render(); });
+      await ch.startNotifications(); this.connected = true; this.status(); toast('✓ Sensor cardíaco ligado');
+    } catch (e) { if (e && e.name !== 'NotFoundError') toast('Não foi possível ligar o sensor. Ative a partilha de ritmo cardíaco no relógio.', 4500); }
+  },
+  disconnect() { try { this.device.gatt.disconnect(); } catch (e) {} },
+  status() { $('hrStatus').textContent = this.connected ? `Ligado · ${this.device.name || 'sensor'}` : 'Desligado'; $('hrBtn').textContent = this.connected ? 'Desligar' : 'Ligar'; }
+};
+
+/* ---------------- Ecrã sempre ligado ---------------- */
+const wake = { lock: null, want: false,
+  async on() { this.want = true; if (!settings.wake || !('wakeLock' in navigator)) return; try { this.lock = await navigator.wakeLock.request('screen'); } catch (e) {} },
+  off() { this.want = false; try { this.lock && this.lock.release(); } catch (e) {} this.lock = null; }
+};
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && wake.want) wake.on(); });
+
+/* ---------------- Vídeo de fundo ---------------- */
+const db = { open() { return new Promise((res, rej) => { const r = indexedDB.open('virtualwalk', 1); r.onupgradeneeded = () => r.result.createObjectStore('videos'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); },
+  async put(k, v) { const d = await this.open(); return new Promise((res, rej) => { const t = d.transaction('videos', 'readwrite'); t.objectStore('videos').put(v, k); t.oncomplete = res; t.onerror = () => rej(t.error); }); },
+  async get(k) { const d = await this.open(); return new Promise((res) => { const q = d.transaction('videos').objectStore('videos').get(k); q.onsuccess = () => res(q.result); q.onerror = () => res(null); }); },
+  async del(k) { const d = await this.open(); return new Promise((res) => { const t = d.transaction('videos', 'readwrite'); t.objectStore('videos').delete(k); t.oncomplete = res; t.onerror = res; }); }
+};
+const YT_RATES = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
+const video = {
+  kind: null, yt: null, ytReady: false, el: null, playing: false, rate: 1, saveT: 0, url: null,
+  async load(r) {
+    this.teardown(); this.routeId = r.id;
+    const cfg = routeVideo[r.id] || { type: 'yt', id: r.yt };
+    if (cfg.type === 'file') {
+      const blob = await db.get('video_' + r.id).catch(() => null);
+      if (blob) {
+        this.kind = 'file'; this.url = URL.createObjectURL(blob);
+        const v = document.createElement('video'); v.src = this.url; v.muted = !settings.videoSound; v.loop = true; v.playsInline = true; v.preload = 'auto';
+        v.addEventListener('loadedmetadata', () => { const t = store.get('vpos_' + r.id, 0); if (t < v.duration) v.currentTime = t; });
+        v.addEventListener('playing', () => $('bgVideo').classList.add('show'));
+        $('bgVideo').appendChild(v); this.el = v; this.sync(); return;
+      }
+    }
+    if (cfg.type === 'yt' || !cfg.type) this.loadYT(cfg.id || r.yt, r);
+  },
+  loadYT(id, r) {
+    this.kind = 'yt';
+    const create = () => {
+      const host = document.createElement('div'); host.id = 'ytHost'; $('bgVideo').appendChild(host);
+      this.yt = new YT.Player(host, { videoId: id, playerVars: { autoplay: 0, controls: 0, disablekb: 1, fs: 0, iv_load_policy: 3, modestbranding: 1, playsinline: 1, rel: 0, loop: 1, playlist: id, mute: 1, start: Math.floor(store.get('vpos_' + r.id, 0)) },
+        events: {
+          onReady: () => { this.ytReady = true; if (settings.videoSound) { this.yt.unMute(); this.yt.setVolume(60); } else this.yt.mute(); this.sync(); },
+          onStateChange: (e) => { if (e.data === 1) $('bgVideo').classList.add('show'); },
+          onError: () => { $('bgVideo').classList.remove('show'); toast('Vídeo indisponível. A mostrar a fotografia da rota.'); }
+        } });
+    };
+    if (window.YT && YT.Player) create();
+    else { window.onYouTubeIframeAPIReady = create; if (!document.querySelector('script[src*="youtube.com/iframe_api"]')) { const s = document.createElement('script'); s.src = 'https://www.youtube.com/iframe_api'; document.head.appendChild(s); } }
+  },
+  teardown() {
+    this.savePos(); $('bgVideo').classList.remove('show');
+    try { this.yt && this.yt.destroy(); } catch (e) {}
+    if (this.url) URL.revokeObjectURL(this.url);
+    $('bgVideo').innerHTML = ''; Object.assign(this, { kind: null, yt: null, ytReady: false, el: null, playing: false, url: null });
+  },
+  savePos() {
+    try { const t = this.kind === 'yt' && this.ytReady ? this.yt.getCurrentTime() : this.kind === 'file' && this.el ? this.el.currentTime : null; if (t != null && this.routeId) store.set('vpos_' + this.routeId, t); } catch (e) {}
+  },
+  sync() {
+    const moving = S.state === 'running' && S.speed > 0;
+    let rate = clamp(S.speed / (settings.ref || 5), 0.25, 2);
+    if (this.kind === 'yt' && this.ytReady) {
+      rate = YT_RATES.reduce((a, b) => Math.abs(b - rate) < Math.abs(a - rate) ? b : a);
+      if (moving) { if (rate !== this.rate) { this.yt.setPlaybackRate(rate); this.rate = rate; } if (!this.playing) { this.yt.playVideo(); this.playing = true; } }
+      else if (this.playing) { this.yt.pauseVideo(); this.playing = false; this.savePos(); }
+    } else if (this.kind === 'file' && this.el) {
+      if (moving) { this.el.playbackRate = rate; if (this.el.paused) this.el.play().catch(() => {}); this.playing = true; }
+      else if (!this.el.paused) { this.el.pause(); this.playing = false; this.savePos(); }
+    }
+    if (performance.now() - this.saveT > 10000) { this.saveT = performance.now(); if (this.playing) this.savePos(); }
+  },
+  setSound(on) { try { if (this.kind === 'yt' && this.ytReady) { on ? (this.yt.unMute(), this.yt.setVolume(60)) : this.yt.mute(); } if (this.el) this.el.muted = !on; } catch (e) {} }
+};
+
+/* ---------------- Mini-mapa ---------------- */
+const mapS = { map: null, line: null, done: null, me: null, svg: null };
+function initMap() {
+  if (mapS.map || mapS.svg) return;
+  if (window.L) {
+    mapS.map = L.map('mapEl', { zoomControl: false, attributionControl: true, dragging: true });
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19, attribution: '© OpenStreetMap © CARTO' }).addTo(mapS.map);
+    mapS.map.attributionControl.setPrefix('');
+  } else {
+    mapS.svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); mapS.svg.setAttribute('class', 'fallback'); mapS.svg.setAttribute('viewBox', '0 0 100 100'); $('mapEl').appendChild(mapS.svg);
+  }
+  drawRouteOnMap();
+}
+function drawRouteOnMap() {
+  const r = currentRoute; if (!mapS.map && !mapS.svg) return;
+  if (mapS.map) {
+    [mapS.line, mapS.done, mapS.me].forEach(l => l && mapS.map.removeLayer(l));
+    mapS.line = L.polyline(r.geom, { color: '#7d8aa3', weight: 4, opacity: .8 }).addTo(mapS.map);
+    mapS.done = L.polyline([], { color: '#00e5ff', weight: 5 }).addTo(mapS.map);
+    mapS.me = L.marker(r.geom[0], { icon: L.divIcon({ className: '', html: '<div class="me-dot"></div>', iconSize: [16, 16], iconAnchor: [8, 8] }) }).addTo(mapS.map);
+    mapS.map.fitBounds(mapS.line.getBounds(), { padding: [12, 12] });
+  } else {
+    const lats = r.geom.map(p => p[0]), lngs = r.geom.map(p => p[1]), minLa = Math.min(...lats), maxLa = Math.max(...lats), minLo = Math.min(...lngs), maxLo = Math.max(...lngs);
+    const sc = 84 / Math.max(maxLa - minLa, (maxLo - minLo) * 0.78, 1e-6);
+    mapS.proj = (p) => [8 + (p[1] - minLo) * 0.78 * sc + (84 - (maxLo - minLo) * 0.78 * sc) / 2, 92 - (p[0] - minLa) * sc - (84 - (maxLa - minLa) * sc) / 2];
+    const d = r.geom.map((p, i) => (i ? 'L' : 'M') + mapS.proj(p).map(n => n.toFixed(2)).join(' ')).join('');
+    mapS.svg.innerHTML = `<path d="${d}" fill="none" stroke="#7d8aa3" stroke-width="2.4" stroke-linejoin="round"/><path id="svgDone" fill="none" stroke="#00e5ff" stroke-width="3" stroke-linejoin="round"/><circle id="svgMe" r="3.4" fill="#00e5ff" stroke="#fff" stroke-width="1.4"/>`;
+  }
+  updateMapPos(r.km ? routeKmDone() % r.km : 0);
+}
+function updateMapPos(km) {
+  const r = currentRoute; if (!$('minimap').classList.contains('show')) return;
+  const p = posAt(r, km), donePts = r.geom.filter((_, i) => r.cum[i] <= km).concat([p]);
+  if (mapS.map) { mapS.me.setLatLng(p); mapS.done.setLatLngs(donePts); if ($('minimap').classList.contains('big') === false) mapS.map.panTo(p, { animate: true }); }
+  else if (mapS.svg) { const q = mapS.proj(p); const me = mapS.svg.querySelector('#svgMe'); me.setAttribute('cx', q[0]); me.setAttribute('cy', q[1]);
+    mapS.svg.querySelector('#svgDone').setAttribute('d', donePts.map((pt, i) => (i ? 'L' : 'M') + mapS.proj(pt).map(n => n.toFixed(2)).join(' ')).join('')); }
+}
+function toggleMap(force) {
+  const m = $('minimap'), on = force != null ? force : !m.classList.contains('show');
+  m.classList.toggle('show', on); m.classList.remove('big'); $('btnMap').classList.toggle('on', on); store.set('mapOn', on);
+  if (on) { initMap(); setTimeout(() => { if (mapS.map) { mapS.map.invalidateSize(); mapS.map.fitBounds(mapS.line.getBounds(), { padding: [10, 10] }); } updateMapPos(currentRoute.km ? routeKmDone() % currentRoute.km : 0); }, 50); }
+}
+$('btnMap').onclick = () => toggleMap();
+$('minimap').addEventListener('click', (e) => { const m = $('minimap'); if (e.target.closest('#mapClose')) { m.classList.remove('big'); } else if (!m.classList.contains('big')) m.classList.add('big'); else return; setTimeout(() => { if (mapS.map) { mapS.map.invalidateSize(); mapS.map.fitBounds(mapS.line.getBounds(), { padding: [16, 16] }); } }, 60); });
+
+/* ---------------- Spotify ---------------- */
+const SP_SCOPES = 'user-read-playback-state user-modify-playback-state user-read-currently-playing playlist-read-private playlist-read-collaborative';
+const SP_REDIRECT = location.origin + location.pathname;
+const sp = {
+  tok: store.get('spTok', null), now: null, poll: null, wasPlayingBeforePause: false,
+  get linked() { return !!(this.tok && this.tok.refresh); },
+  parseLink(s) { const m = (s || '').match(/(?:open\.spotify\.com\/(?:intl-[a-z-]+\/)?|spotify:)(playlist|album|track|artist|show|episode)[/:]([A-Za-z0-9]+)/); return m ? { type: m[1], id: m[2] } : null; },
+  async login() {
+    if (!settings.spClient) { toast('Introduza primeiro o Client ID do Spotify.'); return; }
+    if (location.protocol !== 'https:' && !/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) { toast('O Spotify só permite ligação quando a app está num endereço https.', 4500); return; }
+    const rnd = crypto.getRandomValues(new Uint8Array(48)), verifier = btoa(String.fromCharCode(...rnd)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier));
+    const challenge = btoa(String.fromCharCode(...new Uint8Array(hash))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    sessionStorage.setItem('sp_verifier', verifier);
+    location.href = 'https://accounts.spotify.com/authorize?' + new URLSearchParams({ response_type: 'code', client_id: settings.spClient, scope: SP_SCOPES, code_challenge_method: 'S256', code_challenge: challenge, redirect_uri: SP_REDIRECT });
+  },
+  async handleRedirect() {
+    const q = new URLSearchParams(location.search), code = q.get('code');
+    if (q.get('error')) { history.replaceState(null, '', SP_REDIRECT); toast('Ligação ao Spotify cancelada.'); return; }
+    if (!code) return;
+    history.replaceState(null, '', SP_REDIRECT);
+    const verifier = sessionStorage.getItem('sp_verifier'); if (!verifier) return;
+    try {
+      const res = await fetch('https://accounts.spotify.com/api/token', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ grant_type: 'authorization_code', code, redirect_uri: SP_REDIRECT, client_id: settings.spClient, code_verifier: verifier }) });
+      const j = await res.json(); if (!j.access_token) throw j;
+      this.saveTok(j); toast('✓ Spotify ligado'); setMusic(true); showScreen('home');
+    } catch (e) { toast('Erro ao ligar ao Spotify. Confirme o Client ID e o Redirect URI.', 4500); }
+  },
+  saveTok(j) { this.tok = { access: j.access_token, refresh: j.refresh_token || (this.tok && this.tok.refresh), exp: Date.now() + (j.expires_in - 60) * 1000 }; store.set('spTok', this.tok); },
+  async refresh() {
+    const res = await fetch('https://accounts.spotify.com/api/token', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ grant_type: 'refresh_token', refresh_token: this.tok.refresh, client_id: settings.spClient }) });
+    const j = await res.json(); if (!j.access_token) { this.logout(); throw new Error('refresh'); } this.saveTok(j);
+  },
+  async api(path, opt = {}) {
+    if (!this.linked) throw new Error('not linked');
+    if (Date.now() > this.tok.exp) await this.refresh();
+    const res = await fetch('https://api.spotify.com/v1' + path, Object.assign({}, opt, { headers: Object.assign({ Authorization: 'Bearer ' + this.tok.access }, opt.body ? { 'Content-Type': 'application/json' } : {}) }));
+    if (res.status === 401) { await this.refresh(); return this.api(path, opt); }
+    if (res.status === 204 || res.status === 202) return null;
+    const txt = await res.text(); let j = null; try { j = txt ? JSON.parse(txt) : null; } catch (e) {}
+    if (!res.ok) { const err = new Error((j && j.error && j.error.message) || res.status); err.status = res.status; err.reason = j && j.error && j.error.reason; throw err; }
+    return j;
+  },
+  logout() { this.tok = null; store.set('spTok', null); clearInterval(this.poll); this.now = null; renderMusic(); renderSpAuth(); },
+  async refreshNow() {
+    if (!this.linked) return;
+    try { this.now = await this.api('/me/player?additional_types=episode'); } catch (e) { this.now = null; }
+    renderMusic();
+  },
+  startPoll() { clearInterval(this.poll); if (this.linked) { this.refreshNow(); this.poll = setInterval(() => { if ($('music').classList.contains('show') && document.visibilityState === 'visible') this.refreshNow(); }, 5000); } },
+  async cmd(kind) {
+    try {
+      if (kind === 'toggle') await this.api(this.now && this.now.is_playing ? '/me/player/pause' : '/me/player/play', { method: 'PUT' });
+      if (kind === 'play') await this.api('/me/player/play', { method: 'PUT' });
+      if (kind === 'pause') await this.api('/me/player/pause', { method: 'PUT' });
+      if (kind === 'next') await this.api('/me/player/next', { method: 'POST' });
+      if (kind === 'prev') await this.api('/me/player/previous', { method: 'POST' });
+    } catch (e) { this.handleErr(e); }
+    setTimeout(() => this.refreshNow(), 500);
+  },
+  async playContext(uri) {
+    try { await this.api('/me/player/play', { method: 'PUT', body: JSON.stringify({ context_uri: uri }) }); toast('A tocar no Spotify ♪'); }
+    catch (e) {
+      if (e.status === 404) {   // sem dispositivo ativo: tenta o primeiro disponível
+        try { const d = await this.api('/me/player/devices'); const dev = d && d.devices && d.devices[0];
+          if (dev) { await this.api('/me/player/play?device_id=' + dev.id, { method: 'PUT', body: JSON.stringify({ context_uri: uri }) }); toast('A tocar em ' + dev.name + ' ♪'); }
+          else this.handleErr(e);
+        } catch (e2) { this.handleErr(e2); }
+      } else this.handleErr(e);
+    }
+    setTimeout(() => this.refreshNow(), 800);
+  },
+  handleErr(e) {
+    if (e.status === 404) toast('Abra a app Spotify e toque uma música, depois volte aqui.', 4500);
+    else if (e.status === 403) toast('O controlo do Spotify requer uma conta Premium.', 4500);
+    else toast('Spotify: ' + e.message);
+  },
+  async loadPlaylists() {
+    const box = $('spPlaylists'); box.innerHTML = '<div class="note">A carregar playlists…</div>';
+    try { const j = await this.api('/me/playlists?limit=50');
+      box.innerHTML = ''; (j.items || []).filter(Boolean).forEach(p => { const b = document.createElement('button'); b.className = 'pl-item';
+        b.innerHTML = `<i style="background-image:url('${(p.images && p.images[0] && p.images[0].url) || ''}')"></i><span></span>`; b.querySelector('span').textContent = p.name;
+        b.onclick = () => this.playContext(p.uri); box.appendChild(b); });
+      if (!box.children.length) box.innerHTML = '<div class="note">Não foram encontradas playlists.</div>';
+    } catch (e) { box.innerHTML = ''; this.handleErr(e); }
+  }
+};
+function musicAuto(action) {
+  if (!sp.linked) return;
+  if (action === 'pause' && sp.now && sp.now.is_playing) { sp.wasPlayingBeforePause = true; sp.cmd('pause'); }
+  if (action === 'play' && sp.wasPlayingBeforePause) { sp.wasPlayingBeforePause = false; sp.cmd('play'); }
+}
+const ICON = {
+  prev: '<svg viewBox="0 0 24 24" fill="#fff"><path d="M6 5h2v14H6zM20 5v14L9 12z"/></svg>',
+  next: '<svg viewBox="0 0 24 24" fill="#fff"><path d="M16 5h2v14h-2zM4 5v14l11-7z"/></svg>',
+  play: '<svg viewBox="0 0 24 24" fill="#000"><path d="M7 4v16l13-8z"/></svg>',
+  pause: '<svg viewBox="0 0 24 24" fill="#000"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>',
+  spotify: '<svg viewBox="0 0 24 24" fill="#1ed760"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm4.6 14.4a.6.6 0 0 1-.9.2c-2.4-1.5-5.4-1.8-8.9-1a.6.6 0 1 1-.3-1.2c3.9-.9 7.2-.5 9.9 1.1.3.2.4.6.2.9zm1.2-2.8a.8.8 0 0 1-1 .3c-2.7-1.7-6.9-2.2-10.2-1.2a.8.8 0 1 1-.4-1.5c3.7-1.1 8.4-.6 11.5 1.4.3.2.4.7.1 1zm.1-2.9C14.6 8.8 9.2 8.6 6.1 9.5a.9.9 0 1 1-.5-1.8c3.6-1.1 9.5-.9 13.2 1.3a.9.9 0 0 1-.9 1.7z"/></svg>'
+};
+let embedKey = null;
+function renderMusic() {
+  const box = $('music');
+  if (sp.linked) {
+    embedKey = null;
+    const it = sp.now && sp.now.item, playing = sp.now && sp.now.is_playing;
+    const art = it ? ((it.album && it.album.images && it.album.images[0]) || (it.images && it.images[0]) || {}).url : '';
+    const title = it ? it.name : 'Nada a tocar', artist = it ? (it.artists ? it.artists.map(a => a.name).join(', ') : (it.show ? it.show.name : '')) : (sp.now ? '' : 'Abra o Spotify ou escolha uma playlist em Perfil');
+    box.innerHTML = `<div class="sp-bar"><div class="sp-art" style="background-image:url('${art || ''}')">${art ? '' : ICON.spotify}</div><div class="sp-meta"><div class="sp-title"></div><div class="sp-artist"></div></div>
+      <div class="sp-ctl"><button data-c="prev" aria-label="Anterior">${ICON.prev}</button><button class="main" data-c="toggle" aria-label="Tocar/pausar">${playing ? ICON.pause : ICON.play}</button><button data-c="next" aria-label="Seguinte">${ICON.next}</button></div></div>`;
+    box.querySelector('.sp-title').textContent = title; box.querySelector('.sp-artist').textContent = artist + (sp.now && sp.now.device ? ' · ' + sp.now.device.name : '');
+    box.querySelectorAll('[data-c]').forEach(b => b.onclick = () => sp.cmd(b.dataset.c));
+  } else {
+    const l = sp.parseLink(settings.spLink);
+    const key = l ? l.type + l.id : 'none';
+    if (key === embedKey) return; embedKey = key;
+    box.innerHTML = l ? `<iframe src="https://open.spotify.com/embed/${l.type}/${l.id}?utm_source=generator&theme=0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>`
+      : `<div class="sp-bar"><div class="sp-art" style="display:grid;place-items:center">${ICON.spotify}</div><div class="sp-meta"><div class="sp-title">Spotify em segundo plano</div><div class="sp-artist">A música continua a tocar na app Spotify</div></div><button class="chip sp" id="spOpen2">Abrir</button></div>`;
+    const o = box.querySelector('#spOpen2'); if (o) o.onclick = () => $('spOpenApp').click();
+  }
+}
+function renderSpAuth() {
+  const a = $('spAuthActions'); a.innerHTML = '';
+  const mk = (txt, cls, fn) => { const b = document.createElement('button'); b.className = 'chip ' + cls; b.textContent = txt; b.onclick = fn; a.appendChild(b); };
+  if (sp.linked) { mk('As minhas playlists', 'sp', () => sp.loadPlaylists()); mk('Desligar Spotify', 'danger', () => { sp.logout(); $('spPlaylists').innerHTML = ''; toast('Spotify desligado'); }); }
+  else mk('Ligar ao Spotify', 'sp', () => sp.login());
+  $('spRedirect').textContent = SP_REDIRECT;
+}
+function setMusic(on) { $('music').classList.toggle('show', on); $('btnMusic').classList.toggle('on', on); store.set('musicOn', on); if (on) { renderMusic(); sp.startPoll(); } }
+$('btnMusic').onclick = () => setMusic(!$('music').classList.contains('show'));
+$('spOpenApp').onclick = () => { const l = sp.parseLink(settings.spLink); location.href = l ? `spotify:${l.type}:${l.id}` : 'spotify:'; };
+
+/* ---------------- Rotas: ecrã ---------------- */
+function selectRoute(r) {
+  if (S.state !== 'idle' && r.id !== currentRoute.id) toast('Rota alterada. A distância continua a contar na sessão.');
+  currentRoute = r; store.set('route', r.id);
+  $('bgPhoto').style.backgroundImage = `url('${routeImg(r)}')`;
+  video.load(r); drawRouteOnMap(); render(); renderRoutes(); enrichRoute(r);
+}
+function renderRoutes() {
+  const list = $('routeList'); list.innerHTML = '';
+  [...ROUTES].sort((a, b) => favs.includes(b.id) - favs.includes(a.id)).forEach(r => {
+    const vc = routeVideo[r.id], vtxt = vc && vc.type === 'file' ? '🎞 ' + (vc.name || 'vídeo do telemóvel') : vc && vc.type === 'yt' && vc.id !== r.yt ? '▶ YouTube personalizado' : '▶ Vídeo sugerido';
+    const done = progress[r.id] || 0;
+    const el = document.createElement('div'); el.className = 'panel' + (r.id === currentRoute.id ? ' current' : '');
+    el.innerHTML = `<div class="route-item" data-sel="1"><div class="route-thumb" style="background-image:url('${routeImg(r)}')"></div><div class="info"><div class="t">${r.emoji} ${r.name} ${favs.includes(r.id) ? '❤️' : ''}</div><div class="d">${r.desc}</div><div class="d">${vtxt}${done ? ' · ' + fmt1(done) + ' km feitos' : ''}</div></div><div class="km">${fmt1(r.km)} km</div></div>
+      <div class="route-actions"><button class="chip ${r.id === currentRoute.id ? '' : 'accent'}" data-a="sel">${r.id === currentRoute.id ? '✓ Rota atual' : 'Escolher rota'}</button><button class="chip" data-a="yt">Vídeo YouTube</button><button class="chip" data-a="file">Vídeo do telemóvel</button>${vc ? '<button class="chip" data-a="reset">Repor vídeo</button>' : ''}${done ? '<button class="chip danger" data-a="zero">Recomeçar rota</button>' : ''}</div>`;
+    el.querySelector('[data-sel]').onclick = () => { selectRoute(r); showScreen('home'); };
+    el.querySelectorAll('[data-a]').forEach(b => b.onclick = async () => {
+      const a = b.dataset.a;
+      if (a === 'sel') { selectRoute(r); showScreen('home'); }
+      if (a === 'yt') { ytTarget = r; $('ytInput').value = vc && vc.type === 'yt' ? 'https://youtu.be/' + vc.id : ''; $('dlgYt').classList.add('open'); }
+      if (a === 'file') { fileTarget = r; $('videoFile').click(); }
+      if (a === 'reset') { delete routeVideo[r.id]; store.set('routeVideo', routeVideo); store.set('vpos_' + r.id, 0); db.del('video_' + r.id).catch(() => {}); if (r === currentRoute) video.load(r); renderRoutes(); }
+      if (a === 'zero') { progress[r.id] = 0; store.set('progress', progress); store.set('vpos_' + r.id, 0); if (r === currentRoute) { video.load(r); render(); } renderRoutes(); }
+    });
+    list.appendChild(el);
+  });
+}
+let ytTarget = null, fileTarget = null;
+$('ytCancel').onclick = () => $('dlgYt').classList.remove('open');
+$('ytOk').onclick = () => {
+  const m = $('ytInput').value.match(/(?:youtu\.be\/|v=|embed\/|shorts\/|live\/)([A-Za-z0-9_-]{11})/) || $('ytInput').value.trim().match(/^([A-Za-z0-9_-]{11})$/);
+  if (!m) { toast('Link do YouTube inválido.'); return; }
+  routeVideo[ytTarget.id] = { type: 'yt', id: m[1] }; store.set('routeVideo', routeVideo); preloadImg(ytTarget); if (ytTarget === currentRoute) $('bgPhoto').style.backgroundImage = `url('${routeImg(ytTarget)}')`; store.set('vpos_' + ytTarget.id, 0);
+  $('dlgYt').classList.remove('open'); if (ytTarget === currentRoute) video.load(currentRoute); renderRoutes(); toast('Vídeo guardado ✓');
+};
+$('videoFile').onchange = async (e) => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f || !fileTarget) return;
+  try { await db.put('video_' + fileTarget.id, f); routeVideo[fileTarget.id] = { type: 'file', name: f.name }; store.set('routeVideo', routeVideo); store.set('vpos_' + fileTarget.id, 0);
+    if (fileTarget === currentRoute) video.load(currentRoute); renderRoutes(); toast('Vídeo guardado no telemóvel ✓');
+  } catch (err) { toast('Não foi possível guardar o vídeo (espaço insuficiente?).', 4000); }
+};
+
+/* ---------------- Atividade ---------------- */
+function renderActivity() {
+  const hist = store.get('history', []), tot = hist.reduce((a, h) => ({ d: a.d + h.dist, s: a.s + h.sec, k: a.k + h.kcal, st: a.st + (h.steps || 0) }), { d: 0, s: 0, k: 0, st: 0 });
+  const weekAgo = Date.now() - 7 * 864e5, wk = hist.filter(h => new Date(h.date).getTime() > weekAgo).reduce((a, h) => a + h.dist, 0);
+  $('statsGrid').innerHTML = [[fmt1(wk) + ' km', 'Últimos 7 dias'], [fmt1(tot.d) + ' km', 'Distância total'], [hist.length, 'Sessões'], [fmtTime(tot.s), 'Tempo total'], [Math.round(tot.k).toLocaleString('pt-PT'), 'Calorias totais'], [tot.st.toLocaleString('pt-PT'), 'Passos totais']]
+    .map(([b, s]) => `<div class="panel"><b>${b}</b><span>${s}</span></div>`).join('');
+  const days = [...Array(7)].map((_, i) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - (6 - i)); return d; });
+  const vals = days.map(d => hist.filter(h => { const t = new Date(h.date); return t >= d && t < new Date(d.getTime() + 864e5); }).reduce((a, h) => a + h.dist, 0));
+  const max = Math.max(1, ...vals), wd = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
+  $('weekChart').innerHTML = days.map((d, i) => `<div><i style="height:${Math.max(3, vals[i] / max * 70)}px" title="${fmt2(vals[i])} km"></i><span>${wd[d.getDay()]}</span></div>`).join('');
+  $('histList').innerHTML = hist.length ? hist.slice(0, 100).map(h => { const d = new Date(h.date);
+    return `<div class="panel"><div class="hist-item"><div><div class="t">${h.route}</div><div class="d">${d.toLocaleDateString('pt-PT', { day: '2-digit', month: 'short' })} · ${pad(d.getHours())}:${pad(d.getMinutes())} · ${fmtTime(h.sec)} · ${h.kcal} kcal${h.hr ? ' · ♥ ' + h.hr : ''}</div></div><div class="v">${fmt2(h.dist)} km<small>${fmt1(h.avg)} km/h · ${(h.steps || 0).toLocaleString('pt-PT')} passos</small></div></div>
+      <div class="route-actions"><button class="chip accent" data-x="png" data-i="${hist.indexOf(h)}">Imagem de resumo</button><button class="chip" data-x="tcx" data-i="${hist.indexOf(h)}">TCX</button><button class="chip" data-x="gpx" data-i="${hist.indexOf(h)}">GPX (com mapa)</button></div></div>`; }).join('')
+    : '<div class="empty">Ainda não há caminhadas guardadas.<br>Termine uma sessão para a ver aqui.</div>';
+  $('histList').querySelectorAll('[data-x]').forEach(b => b.onclick = () => exportSession(hist[+b.dataset.i], b.dataset.x));
+}
+
+/* ---------------- Exportação TCX / GPX ---------------- */
+const xmlEsc = (t) => String(t).replace(/[<>&"]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c]));
+function sessionPoints(h) {
+  const t0 = new Date(h.date).getTime();
+  if (h.track && h.track.length) return h.track;
+  return [[t0, 0, 0, 0, null, null, 0], [t0 + h.sec * 1000, h.dist * 1000, h.hr || 0, h.avg, null, null, h.steps || 0]];   // sessões antigas: só início e fim
+}
+function buildTCX(h) {
+  const pts = sessionPoints(h), iso = (t) => new Date(t).toISOString();
+  const tp = pts.map(p => `<Trackpoint><Time>${iso(p[0])}</Time><DistanceMeters>${p[1]}</DistanceMeters>${p[2] ? `<HeartRateBpm><Value>${p[2]}</Value></HeartRateBpm>` : ''}<Extensions><ns3:TPX><ns3:Speed>${(p[3] / 3.6).toFixed(3)}</ns3:Speed></ns3:TPX></Extensions></Trackpoint>`).join('\n');
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<TrainingCenterDatabase xmlns="http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2" xmlns:ns3="http://www.garmin.com/xmlschemas/ActivityExtension/v2">
+<Activities><Activity Sport="Running"><Id>${iso(pts[0][0])}</Id>
+<Lap StartTime="${iso(pts[0][0])}"><TotalTimeSeconds>${h.sec}</TotalTimeSeconds><DistanceMeters>${(h.dist * 1000).toFixed(1)}</DistanceMeters><Calories>${h.kcal}</Calories>${h.hr ? `<AverageHeartRateBpm><Value>${h.hr}</Value></AverageHeartRateBpm>` : ''}${h.hrMax ? `<MaximumHeartRateBpm><Value>${h.hrMax}</Value></MaximumHeartRateBpm>` : ''}<Intensity>Active</Intensity><TriggerMethod>Manual</TriggerMethod>
+<Track>
+${tp}
+</Track></Lap>
+<Notes>${xmlEsc('Virtual Walk (passadeira) · ' + h.route + ' · ' + (h.steps || 0) + ' passos')}</Notes>
+<Creator xsi:type="Device_t" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><Name>Virtual Walk</Name></Creator>
+</Activity></Activities></TrainingCenterDatabase>`;
+}
+function buildGPX(h) {
+  const pts = sessionPoints(h).filter(p => p[4] != null), iso = (t) => new Date(t).toISOString();
+  const r = ROUTES.find(x => x.name === h.route);
+  if (!pts.length && r) { const t0 = new Date(h.date).getTime(); pts.push([t0, 0, h.hr || 0, 0, ...r.geom[0]], [t0 + h.sec * 1000, h.dist * 1000, h.hr || 0, 0, ...posAt(r, Math.min(h.dist, r.km))]); }
+  const tp = pts.map(p => `<trkpt lat="${p[4]}" lon="${p[5]}"><time>${iso(p[0])}</time>${p[2] ? `<extensions><gpxtpx:TrackPointExtension><gpxtpx:hr>${p[2]}</gpxtpx:hr></gpxtpx:TrackPointExtension></extensions>` : ''}</trkpt>`).join('\n');
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="Virtual Walk" xmlns="http://www.topografix.com/GPX/1/1" xmlns:gpxtpx="http://www.garmin.com/xmlschemas/TrackPointExtension/v1">
+<metadata><name>${xmlEsc(h.route)}</name><time>${iso(new Date(h.date).getTime())}</time></metadata>
+<trk><name>${xmlEsc('Virtual Walk · ' + h.route)}</name><type>walking</type><trkseg>
+${tp}
+</trkseg></trk></gpx>`;
+}
+function buildPNG(h) {
+  const W = 1080, H = 1350, c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d');
+  const bg = g.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, '#0d1a2e'); bg.addColorStop(1, '#05070d'); g.fillStyle = bg; g.fillRect(0, 0, W, H);
+  const glow = g.createRadialGradient(W * .85, 120, 10, W * .85, 120, 600); glow.addColorStop(0, 'rgba(0,229,255,.25)'); glow.addColorStop(1, 'rgba(0,229,255,0)'); g.fillStyle = glow; g.fillRect(0, 0, W, H);
+  const cond = '"Barlow Condensed", "Arial Narrow", sans-serif', reg = 'Barlow, Roboto, sans-serif';
+  // logótipo
+  const lg = g.createLinearGradient(80, 0, 150, 0); lg.addColorStop(0, '#00e5ff'); lg.addColorStop(1, '#00ff9c'); g.fillStyle = lg;
+  g.beginPath(); g.moveTo(80, 90); g.lineTo(115, 152); g.lineTo(150, 90); g.lineTo(132, 90); g.lineTo(115, 122); g.lineTo(98, 90); g.closePath(); g.fill();
+  g.fillStyle = '#fff'; g.font = `800 52px ${cond}`; g.fillText('VIRTUAL WALK', 175, 138);
+  const d = new Date(h.date);
+  g.fillStyle = '#9aa8bd'; g.font = `500 36px ${reg}`;
+  g.fillText(d.toLocaleDateString('pt-PT', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) + ' · ' + pad(d.getHours()) + ':' + pad(d.getMinutes()), 80, 240);
+  g.fillStyle = '#fff'; g.font = `800 64px ${cond}`; g.fillText(h.route.toUpperCase(), 80, 320, W - 160);
+  g.fillStyle = '#00e5ff'; g.font = `700 34px ${reg}`; g.fillText('Caminhada na passadeira · WalkingPad R3', 80, 372);
+  // distância
+  g.fillStyle = '#fff'; g.font = `800 230px ${cond}`; const dist = fmt2(h.dist); g.fillText(dist, 76, 600);
+  const dw = g.measureText(dist).width; g.fillStyle = '#00e5ff'; g.font = `800 80px ${cond}`; g.fillText('km', 96 + dw, 600);
+  // grelha
+  const items = [['Tempo', fmtTime(h.sec)], ['Calorias', h.kcal + ' kcal'], ['Passos', (h.steps || 0).toLocaleString('pt-PT')],
+    ['Velocidade média', fmt1(h.avg) + ' km/h'], ['Ritmo médio', fmtPace(h.avg) + ' /km'], ['Ritmo cardíaco', h.hr ? h.hr + ' BPM' + (h.hrMax ? ' (máx ' + h.hrMax + ')' : '') : '--']];
+  items.forEach(([l, v], i) => {
+    const x = 80 + (i % 2) * 470, y = 690 + Math.floor(i / 2) * 190;
+    g.fillStyle = 'rgba(255,255,255,.06)'; g.strokeStyle = 'rgba(255,255,255,.14)'; g.lineWidth = 2;
+    g.beginPath(); g.roundRect ? g.roundRect(x, y, 450, 165, 28) : g.rect(x, y, 450, 165); g.fill(); g.stroke();
+    g.fillStyle = '#9aa8bd'; g.font = `600 32px ${reg}`; g.fillText(l, x + 32, y + 56);
+    g.fillStyle = '#fff'; g.font = `800 ${v.length > 13 ? 52 : 66}px ${cond}`; g.fillText(v, x + 32, y + 132, 400);
+  });
+  g.fillStyle = '#5d6a80'; g.font = `500 28px ${reg}`; g.fillText('Registado com Virtual Walk', 80, H - 60);
+  return new Promise(res => c.toBlob(res, 'image/png'));
+}
+async function exportSession(h, kind) {
+  if (kind === 'png') {
+    const d = new Date(h.date), name = `virtual-walk-${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}.png`;
+    const file = new File([await buildPNG(h)], name, { type: 'image/png' });
+    try { if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: 'Virtual Walk' }); return; } } catch (e) { if (e && e.name === 'AbortError') return; }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(file); a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    toast('Imagem guardada em Transferências'); return;
+  }
+  const d = new Date(h.date), name = `virtual-walk-${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}.${kind}`;
+  const text = kind === 'tcx' ? buildTCX(h) : buildGPX(h), type = kind === 'tcx' ? 'application/vnd.garmin.tcx+xml' : 'application/gpx+xml';
+  const file = new File([text], name, { type });
+  try { if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: 'Virtual Walk' }); return; } } catch (e) { if (e && e.name === 'AbortError') return; }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(file); a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  toast('Ficheiro guardado em Transferências');
+}
+$('exportBtn').onclick = () => {
+  const hist = store.get('history', []); if (!hist.length) { toast('Não há sessões para exportar.'); return; }
+  const rows = [['data', 'rota', 'distancia_km', 'tempo_s', 'kcal', 'passos', 'vel_media_kmh', 'bpm_medio', 'bpm_max'], ...hist.map(h => [h.date, '"' + h.route + '"', h.dist, h.sec, h.kcal, h.steps, h.avg, h.hr || '', h.hrMax || ''])];
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([rows.map(r => r.join(';')).join('\n')], { type: 'text/csv' })); a.download = 'virtual-walk-historico.csv'; a.click();
+};
+$('clearBtn').onclick = () => { if (confirm('Apagar todo o histórico de caminhadas?')) { store.set('history', []); renderActivity(); toast('Histórico apagado'); } };
+
+/* ---------------- Perfil ---------------- */
+function bindSettings() {
+  const num = (id, key) => { const el = $(id); el.value = settings[key]; el.onchange = () => { const v = parseFloat(el.value); if (!isNaN(v)) { settings[key] = v; saveSettings(); render(); video.sync(); } }; };
+  const sw = (id, key, fn) => { const el = $(id); el.checked = !!settings[key]; el.onchange = () => { settings[key] = el.checked; saveSettings(); fn && fn(el.checked); render(); }; };
+  num('setWeight', 'weight'); num('setHeight', 'height'); num('setRef', 'ref');
+  sw('setAutoStart', 'autoStart'); sw('setControl', 'control'); sw('setWake', 'wake', (on) => { if (on && S.state !== 'idle') wake.on(); if (!on) { const w = wake.want; wake.off(); wake.want = w; } });
+  sw('setVideoSound', 'videoSound', (on) => video.setSound(on));
+  sw('setDemo', 'demo', (on) => { demo.set(on); if (on) { S.targetSpeed = S.targetSpeed || 3; toast('Modo demonstração: use + e − para mudar a velocidade'); if (!settings.control) { settings.control = true; $('setControl').checked = true; saveSettings(); } } else { S.speed = 0; } render(); });
+  const link = $('setSpLink'); link.value = settings.spLink; link.onchange = () => { const v = link.value.trim(); if (v && !sp.parseLink(v)) { toast('Link do Spotify inválido.'); return; } settings.spLink = v; saveSettings(); renderMusic(); toast('Música atualizada ✓'); };
+  const cid = $('setSpClient'); cid.value = settings.spClient; cid.onchange = () => { settings.spClient = cid.value.trim(); saveSettings(); };
+  $('tmBtn').onclick = () => TM.connected ? TM.disconnect() : TM.connect();
+  $('hrBtn').onclick = () => HR.connected ? HR.disconnect() : HR.connect();
+}
+
+/* ---------------- Navegação e botões ---------------- */
+function showScreen(name) {
+  ['routes', 'activity', 'profile'].forEach(n => $('scr-' + n).classList.toggle('open', n === name));
+  document.querySelectorAll('#nav button').forEach(b => b.classList.toggle('active', b.dataset.scr === name));
+  if (name === 'routes') renderRoutes(); if (name === 'activity') renderActivity(); if (name === 'profile') { renderSpAuth(); $('spPlaylists').innerHTML = ''; }
+}
+document.querySelectorAll('#nav button').forEach(b => b.onclick = () => showScreen(b.dataset.scr));
+$('btnRight').onclick = () => showScreen('routes');
+$('btnLeft').onclick = () => S.state === 'idle' ? showScreen('profile') : askEnd();
+$('btnMain').onclick = () => {
+  if (S.state === 'idle') { if (TM.connected || settings.demo) startSession(); else TM.connect(); }
+  else if (S.state === 'running') pauseSession(); else resumeSession();
+};
+$('endCancel').onclick = () => $('dlgEnd').classList.remove('open');
+$('endOk').onclick = endSession;
+$('btnFav').onclick = () => { const id = currentRoute.id; favs = favs.includes(id) ? favs.filter(f => f !== id) : favs.concat(id); store.set('favs', favs); render(); toast(favs.includes(id) ? 'Adicionada aos favoritos ❤️' : 'Removida dos favoritos'); };
+$('btnFocus').onclick = () => { const on = $('home').classList.toggle('focus'); $('btnFocus').classList.toggle('on', on); };
+$('hrBox').onclick = () => { if (!HR.connected) HR.connect(); };
+$('spdUp').onclick = () => TM.setSpeed((S.targetSpeed || S.speed) + 0.5);
+$('spdDown').onclick = () => TM.setSpeed((S.targetSpeed || S.speed) - 0.5);
+window.addEventListener('pagehide', () => { video.savePos(); store.set('progress', progress); });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') { video.savePos(); store.set('progress', progress); } });
+
+/* ---------------- Arranque ---------------- */
+bindSettings();
+$('bgPhoto').style.backgroundImage = `url('${routeImg(currentRoute)}')`;
+ROUTES.forEach(preloadImg);
+render(); renderSpAuth();
+if (store.get('mapOn', false)) toggleMap(true);
+if (store.get('musicOn', false) || sp.linked) setMusic(true);
+if (settings.demo) demo.set(true);
+video.load(currentRoute);
+enrichRoute(currentRoute);
+setTimeout(() => ROUTES.filter(r => r !== currentRoute).forEach(enrichRoute), 4000);
+sp.handleRedirect();
+</script>
+</body>
+</html>
