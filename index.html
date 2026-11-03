@@ -416,6 +416,14 @@
   .dialog .edit input.got { border-color: var(--green); background: rgba(0,255,156,.08); }
   .ks-note { font-size: .76rem; margin-top: 6px; color: var(--sub); }
   .ks-note.ok { color: var(--green); } .ks-note.err { color: #ff9db0; }
+  .imp-list { display: flex; flex-direction: column; gap: 8px; margin: 12px 0 14px; max-height: 55vh; overflow-y: auto; }
+  .imp-row { border: 1px solid rgba(0,255,156,.45); border-radius: 14px; padding: 10px; }
+  .imp-row.need { border-color: var(--orange); }
+  .imp-v { font-size: .85rem; margin-bottom: 6px; } .imp-v b { font-family: var(--cond); font-size: 1.15rem; }
+  .imp-row label { font-size: .72rem; color: var(--green); font-weight: 600; display: flex; flex-direction: column; gap: 4px; }
+  .imp-row.need label { color: #ffd08a; }
+  .imp-row input, .date-in { background: rgba(255,255,255,.07); border: 1px solid var(--line); color: #fff; border-radius: 10px; padding: 9px; font: inherit; font-size: .95rem; width: 100%; color-scheme: dark; }
+  .date-in { margin: 12px 0 16px; }
   .badge-ks { display: inline-block; background: rgba(255,176,32,.15); color: #ffd08a; border-radius: 8px; padding: 1px 6px; font-size: .66rem; margin-left: 4px; vertical-align: middle; }
 
   /* ---------- Indicadores no topo, bloqueio, duplo toque ---------- */
@@ -739,6 +747,22 @@
     <img id="viewImg" alt="Resumo da caminhada">
     <div class="vtip">Toque na imagem para esconder os botões e fazer printscreen</div>
     <div class="vbar"><button id="vClose">Fechar</button><button id="vSave">Guardar</button><button class="ok" id="vShare">Partilhar</button></div>
+  </div>
+  <div class="dialog" id="dlgImp">
+    <div class="box">
+      <h3>Importar da KS Fit</h3>
+      <p class="note">Confirme a data de cada treino. Se o printscreen não mostrava a data, escolha o dia em que fez o treino.</p>
+      <div class="imp-list" id="impList"></div>
+      <div class="row"><button id="impCancel">Cancelar</button><button class="ok" id="impOk">Importar</button></div>
+    </div>
+  </div>
+  <div class="dialog" id="dlgDate">
+    <div class="box">
+      <h3>Alterar data</h3>
+      <p class="note" id="dateInfo"></p>
+      <input type="datetime-local" id="dateInput" class="date-in">
+      <div class="row"><button id="dateCancel">Cancelar</button><button class="ok" id="dateOk">Guardar</button></div>
+    </div>
   </div>
   <div class="dialog" id="dlgProg">
     <div class="box">
@@ -1308,6 +1332,23 @@ async function ocrImage(file) {
   c.width = Math.round(bmp.width * sc); c.height = Math.round(bmp.height * sc); const g = c.getContext('2d'); g.filter = 'grayscale(1) contrast(1.4)'; g.drawImage(bmp, 0, 0, c.width, c.height);
   const w = await getOcr(), r = await w.recognize(c); return r.data.text || '';
 }
+const MESES = { jan: 0, fev: 1, feb: 1, mar: 2, abr: 3, apr: 3, mai: 4, may: 4, jun: 5, jul: 6, ago: 7, aug: 7, set: 8, sep: 8, out: 9, oct: 9, nov: 10, dez: 11, dec: 11 };
+function parseDate(txt) {
+  const t = txt.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''), now = new Date();
+  const hm = (rest) => { const m = rest && rest.match(/^\D{0,12}?(\d{1,2})[:h](\d{2})/); return m && +m[1] < 24 ? [+m[1], +m[2]] : [12, 0]; };
+  const mk = (y, mo, d, rest) => { if (mo < 0 || mo > 11 || d < 1 || d > 31) return null; const [H, M] = hm(rest); let dt = new Date(y, mo, d, H, M);
+    if (y === null) { dt = new Date(now.getFullYear(), mo, d, H, M); if (dt > now) dt.setFullYear(now.getFullYear() - 1); }
+    return isNaN(dt) || dt > now ? null : dt; };
+  let m, r = null;
+  if ((m = t.match(/(20\d{2})\s*[-/.年]\s*(\d{1,2})\s*[-/.月]\s*(\d{1,2})(.{0,20})/))) r = mk(+m[1], +m[2] - 1, +m[3], m[4]);
+  if (!r && (m = t.match(/\b(\d{1,2})[/.-](\d{1,2})[/.-](20\d{2}|\d{2})\b(.{0,20})/))) r = mk(m[3].length === 2 ? 2000 + +m[3] : +m[3], +m[2] - 1, +m[1], m[4]);
+  if (!r && (m = t.match(/\b(\d{1,2})\s*(?:de\s+)?([a-z]{3})[a-z]*\.?\s*(?:de\s+)?(20\d{2})?(.{0,20})/)) && MESES[m[2]] != null) r = mk(m[3] ? +m[3] : null, MESES[m[2]], +m[1], m[4]);
+  if (!r && (m = t.match(/\b([a-z]{3})[a-z]*\.?\s+(\d{1,2}),?\s*(20\d{2})?(.{0,20})/)) && MESES[m[1]] != null) r = mk(m[3] ? +m[3] : null, MESES[m[1]], +m[2], m[4]);
+  if (!r && (m = t.match(/\b(\d{1,2})[/.-](\d{1,2})\b(?![/.-]?\d)(.{0,20})/)) && +m[2] <= 12) r = mk(null, +m[2] - 1, +m[1], m[3]);
+  if (!r && /\bontem\b|yesterday/.test(t)) { r = new Date(); r.setDate(r.getDate() - 1); r.setHours(12, 0, 0, 0); }
+  return r;
+}
+const toLocalInput = (d) => { d = new Date(d); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`; };
 function parseKsfit(raw) {
   const txt = raw.replace(/\r/g, ''), lines = txt.split('\n').map(l => l.trim()).filter(Boolean), low = lines.map(l => l.toLowerCase());
   const num = (t) => parseFloat(String(t).replace(/\s/g, '').replace(',', '.'));
@@ -1340,11 +1381,7 @@ function parseKsfit(raw) {
   // calorias
   let kv = (txt.match(/(\d{1,4}(?:[.,]\d)?)[ \t]*(?:kcal|cal\b)/i) || [])[1] || byLabel(/calorias|calories|kcal/, isNum);
   if (kv) out.kcal = Math.round(num(kv));
-  // data (para importar treinos antigos)
-  let dt = txt.match(/(20\d{2})[-/.](\d{1,2})[-/.](\d{1,2})(?:\D+(\d{1,2}):(\d{2}))?/), d = null;
-  if (dt) d = new Date(+dt[1], +dt[2] - 1, +dt[3], +(dt[4] || 12), +(dt[5] || 0));
-  else if ((dt = txt.match(/(\d{1,2})[/.-](\d{1,2})[/.-](20\d{2})(?:\D+(\d{1,2}):(\d{2}))?/))) d = new Date(+dt[3], +dt[2] - 1, +dt[1], +(dt[4] || 12), +(dt[5] || 0));
-  if (d && !isNaN(d) && d <= new Date()) out.date = d.toISOString();
+  const d = parseDate(txt); if (d) out.date = d.toISOString();
   return out;
 }
 $('ksRead').onclick = () => $('ksFile').click();
@@ -1365,28 +1402,48 @@ $('ksFile').onchange = async (e) => {
   btn.classList.remove('busy');
 };
 $('ksImport').onclick = () => $('ksFiles').click();
+let impItems = [];
 $('ksFiles').onchange = async (e) => {
   const files = [...e.target.files]; e.target.value = ''; if (!files.length) return;
-  const btn = $('ksImport'), note = $('ksImpNote'); btn.classList.add('busy'); let ok = 0, fail = 0, dup = 0;
-  const hist = getHist().slice();
+  const btn = $('ksImport'), note = $('ksImpNote'); btn.classList.add('busy'); let fail = 0; impItems = [];
   for (let i = 0; i < files.length; i++) {
     note.className = 'ks-note'; note.textContent = `A ler ${i + 1} de ${files.length}…`;
-    try {
-      const v = parseKsfit(await ocrImage(files[i]));
-      if (!v.dist && !v.sec) { fail++; continue; }
-      const date = v.date || new Date(files[i].lastModified || Date.now()).toISOString(), sec = v.sec || 0, dist = v.dist || 0;
-      if (hist.some(h => Math.abs(new Date(h.date) - new Date(date)) < 36e5 * 3 && Math.abs(h.dist - dist) < 0.02)) { dup++; continue; }
-      const avg = sec ? dist / (sec / 3600) : 0;
-      hist.push({ id: Date.now() + i, date, route: 'Passadeira (KS Fit)', routeId: null, imported: true, dist: +dist.toFixed(3), sec, kcal: v.kcal || 0, steps: v.steps || 0,
-        avg: +avg.toFixed(2), vmax: +avg.toFixed(1), hr: null, hrMax: null, ksfit: true });
-      ok++;
-    } catch (err) { fail++; if (!ocrWorker) break; }
+    try { const v = parseKsfit(await ocrImage(files[i])); if (!v.dist && !v.sec) { fail++; continue; } impItems.push(v); }
+    catch (err) { fail++; if (!ocrWorker) break; }
   }
-  hist.sort((a, b) => new Date(b.date) - new Date(a.date)); setHist(hist.slice(0, 500));
-  note.className = 'ks-note ' + (ok ? 'ok' : 'err');
-  note.textContent = (ok ? `✓ ${ok} ${ok === 1 ? 'treino importado' : 'treinos importados'}.` : 'Nenhum treino importado.') + (dup ? ` ${dup} já existia${dup === 1 ? '' : 'm'}.` : '') + (fail ? ` ${fail} sem dados legíveis.` : '') + (ok ? ' Se a data não estava no printscreen, usei a data da imagem.' : '');
-  btn.classList.remove('busy'); renderActivity(); render(); if (ok) setTimeout(() => checkMedals(true), 600);
+  btn.classList.remove('busy');
+  if (!impItems.length) { note.className = 'ks-note err'; note.textContent = 'Nenhum treino lido.' + (fail ? ' Use printscreens do resumo do treino da KS Fit.' : ''); return; }
+  note.textContent = fail ? `${fail} ${fail === 1 ? 'imagem' : 'imagens'} sem dados legíveis.` : '';
+  $('impList').innerHTML = impItems.map((v, i) => `<div class="imp-row ${v.date ? '' : 'need'}"><div class="imp-v"><b>${v.dist ? fmt2(v.dist) + ' km' : '—'}</b> · ${v.sec ? fmtTime(v.sec) : '—'} · ${v.steps || 0} passos · ${v.kcal || 0} kcal</div>
+    <label>${v.date ? '✓ Data lida do printscreen' : '⚠ Data não encontrada: escolha o dia do treino'}<input type="datetime-local" data-i="${i}" value="${v.date ? toLocalInput(v.date) : ''}" max="${toLocalInput(new Date())}"></label></div>`).join('');
+  $('impList').querySelectorAll('input').forEach(inp => inp.oninput = () => inp.closest('.imp-row').classList.toggle('need', !inp.value));
+  $('dlgImp').classList.add('open');
 };
+$('impCancel').onclick = () => { $('dlgImp').classList.remove('open'); impItems = []; };
+$('impOk').onclick = () => {
+  const ins = [...$('impList').querySelectorAll('input')];
+  if (ins.some(x => !x.value)) { toast('Escolha a data de todos os treinos.'); return; }
+  const hist = getHist().slice(); let ok = 0, dup = 0;
+  impItems.forEach((v, i) => {
+    const date = new Date(ins[i].value).toISOString(), sec = v.sec || 0, dist = v.dist || 0;
+    if (hist.some(h => Math.abs(new Date(h.date) - new Date(date)) < 36e5 * 3 && Math.abs(h.dist - dist) < 0.02)) { dup++; return; }
+    const avg = sec ? dist / (sec / 3600) : 0;
+    hist.push({ id: Date.now() + i, date, route: 'Passadeira (KS Fit)', routeId: null, imported: true, dist: +dist.toFixed(3), sec, kcal: v.kcal || 0, steps: v.steps || 0,
+      avg: +avg.toFixed(2), vmax: +avg.toFixed(1), hr: null, hrMax: null, ksfit: true }); ok++;
+  });
+  hist.sort((a, b) => new Date(b.date) - new Date(a.date)); setHist(hist.slice(0, 500)); $('dlgImp').classList.remove('open');
+  const note = $('ksImpNote'); note.className = 'ks-note ' + (ok ? 'ok' : 'err');
+  note.textContent = (ok ? `✓ ${ok} ${ok === 1 ? 'treino importado' : 'treinos importados'} com a data do treino.` : 'Nenhum treino novo.') + (dup ? ` ${dup} já existia${dup === 1 ? '' : 'm'}.` : '');
+  renderActivity(); render(); if (ok) setTimeout(() => checkMedals(true), 600);
+};
+// corrigir a data de uma sessão já guardada
+let dateIdx = -1;
+function openDateEdit(i) { const h = getHist()[i]; if (!h) return; dateIdx = i; $('dateInput').value = toLocalInput(h.date); $('dateInput').max = toLocalInput(new Date());
+  $('dateInfo').textContent = `${h.route} · ${fmt2(h.dist)} km · ${fmtTime(h.sec)}`; $('dlgDate').classList.add('open'); }
+$('dateCancel').onclick = () => $('dlgDate').classList.remove('open');
+$('dateOk').onclick = () => { const v = $('dateInput').value; if (!v) { toast('Escolha a data.'); return; }
+  const hist = getHist().slice(); hist[dateIdx] = Object.assign({}, hist[dateIdx], { date: new Date(v).toISOString() });
+  hist.sort((a, b) => new Date(b.date) - new Date(a.date)); setHist(hist); $('dlgDate').classList.remove('open'); renderActivity(); render(); toast('✓ Data alterada'); };
 
 /* ---------------- Escolha do treino ---------------- */
 function renderProgList() {
@@ -1884,9 +1941,9 @@ function renderActivity() {
   $('weekChart').innerHTML = days.map((d, i) => `<div><i style="height:${Math.max(3, vals[i] / max * 70)}px" title="${fmt2(vals[i])} km"></i><span>${wd[d.getDay()]}</span></div>`).join('');
   $('histList').innerHTML = hist.length ? hist.slice(0, 100).map(h => { const d = new Date(h.date);
     return `<div class="panel"><div class="hist-item"><div><div class="t">${h.route}${h.imported ? '<span class="badge-ks">importado</span>' : ''}</div><div class="d">${d.toLocaleDateString('pt-PT', { day: '2-digit', month: 'short' })} · ${pad(d.getHours())}:${pad(d.getMinutes())} · ${fmtTime(h.sec)} · ${h.kcal} kcal${h.hr ? ' · ♥ ' + h.hr : ''}</div></div><div class="v">${fmt2(h.dist)} km<small>${fmt1(h.avg)} km/h${h.vmax ? ' · máx ' + fmt1(h.vmax) : ''} · ${(h.steps || 0).toLocaleString('pt-PT')} passos</small></div></div>
-      <div class="route-actions"><button class="chip accent" data-x="png" data-i="${hist.indexOf(h)}">Imagem de resumo</button><button class="chip" data-x="tcx" data-i="${hist.indexOf(h)}">TCX</button><button class="chip" data-x="gpx" data-i="${hist.indexOf(h)}">GPX (com mapa)</button></div></div>`; }).join('')
+      <div class="route-actions"><button class="chip accent" data-x="png" data-i="${hist.indexOf(h)}">Imagem de resumo</button><button class="chip" data-x="tcx" data-i="${hist.indexOf(h)}">TCX</button><button class="chip" data-x="gpx" data-i="${hist.indexOf(h)}">GPX (com mapa)</button><button class="chip" data-x="date" data-i="${hist.indexOf(h)}">📅 Data</button></div></div>`; }).join('')
     : '<div class="empty">Ainda não há caminhadas guardadas.<br>Termine uma sessão para a ver aqui.</div>';
-  $('histList').querySelectorAll('[data-x]').forEach(b => b.onclick = () => exportSession(hist[+b.dataset.i], b.dataset.x));
+  $('histList').querySelectorAll('[data-x]').forEach(b => b.onclick = () => b.dataset.x === 'date' ? openDateEdit(+b.dataset.i) : exportSession(hist[+b.dataset.i], b.dataset.x));
   const st = streakInfo(hist), got = checkMedals(false), nGot = MEDALS.filter(m => got[m.id]).length;
   $('streakBox').innerHTML = `<div class="streak-row"><div class="fire">🔥</div><div><b>${st.cur} ${st.cur === 1 ? 'dia seguido' : 'dias seguidos'}</b><span>${st.today ? 'Hoje já está feito ✓' : st.cur ? 'Caminhe hoje para não perder a sequência' : 'Caminhe hoje para começar uma sequência'} · recorde: ${st.best} · medalhas: ${nGot}/${MEDALS.length}</span></div></div>`;
   $('medalGrid').innerHTML = MEDALS.map(m => `<div class="medal ${got[m.id] ? 'on' : ''}"><i>${m.e}</i><b>${m.n}</b><span>${got[m.id] ? new Date(got[m.id]).toLocaleDateString('pt-PT', { day: '2-digit', month: 'short' }) : m.d}</span></div>`).join('');
