@@ -44,6 +44,8 @@
   .bg-video.show { opacity: 1; }
   .bg-video iframe, .bg-video #ytHost { position: absolute; top: 50%; left: 50%; width: max(100vw, 177.78vh); height: max(100vh, 56.25vw); transform: translate(-50%, -50%); border: 0; }
   .bg-video video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .tap-play { position: absolute; left: 50%; top: 42%; transform: translate(-50%, -50%); z-index: 6; display: none; padding: 16px 22px; border-radius: 18px; border: 2px solid var(--cyan); background: rgba(0,0,0,.75); color: #fff; font-weight: 700; font-size: 1rem; box-shadow: 0 0 20px var(--cyan-soft); }
+  .tap-play.show { display: block; }
   .shade { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(8,12,22,.70) 0%, rgba(8,12,22,.10) 28%, rgba(8,12,22,.05) 52%, rgba(8,12,22,.88) 100%); }
 
   /* ---------- Ecrã inicial ---------- */
@@ -256,6 +258,7 @@
   <div class="bg-photo" id="bgPhoto"></div>
   <div class="bg-video" id="bgVideo"><div id="ytHost"></div></div>
   <div class="shade"></div>
+  <button class="tap-play" id="tapPlay">▶ Toque aqui para iniciar o vídeo</button>
 
   <!-- ================= INÍCIO ================= -->
   <main class="home" id="home">
@@ -446,6 +449,14 @@
       </div>
       <div class="sum small" id="endSum"></div>
       <div class="row"><button id="endCancel">Continuar</button><button class="ok" id="endOk">Guardar</button></div>
+    </div>
+  </div>
+  <div class="dialog" id="dlgTest">
+    <div class="box">
+      <h3>Testar vídeo</h3>
+      <p class="note">Se o vídeo tocar aqui, também toca durante a caminhada. Se aparecer “Vídeo indisponível” ou “a reprodução noutros sites está desativada”, o autor não permite usá-lo noutras apps: escolha outro em “Vídeo YouTube”.</p>
+      <div style="position:relative;padding-top:56.25%;margin:12px 0;border-radius:12px;overflow:hidden;background:#000"><iframe id="testFrame" style="position:absolute;inset:0;width:100%;height:100%;border:0" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe></div>
+      <div class="row"><button class="ok" id="testClose">Fechar</button></div>
     </div>
   </div>
   <div class="dialog" id="dlgYt">
@@ -867,6 +878,7 @@ const db = { open() { return new Promise((res, rej) => { const r = indexedDB.ope
   async get(k) { const d = await this.open(); return new Promise((res) => { const q = d.transaction('videos').objectStore('videos').get(k); q.onsuccess = () => res(q.result); q.onerror = () => res(null); }); },
   async del(k) { const d = await this.open(); return new Promise((res) => { const t = d.transaction('videos', 'readwrite'); t.objectStore('videos').delete(k); t.oncomplete = res; t.onerror = res; }); }
 };
+const videoErr = store.get('videoErr', {});
 const YT_RATES = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
 const video = {
   kind: null, yt: null, ytReady: false, el: null, playing: false, rate: 1, saveT: 0, url: null,
@@ -892,8 +904,9 @@ const video = {
       this.yt = new YT.Player(host, { videoId: id, playerVars: { autoplay: 0, controls: 0, disablekb: 1, fs: 0, iv_load_policy: 3, modestbranding: 1, playsinline: 1, rel: 0, loop: 1, playlist: id, mute: 1, start: Math.floor(store.get('vpos_' + r.id, 0)) },
         events: {
           onReady: () => { this.ytReady = true; if (settings.videoSound) { this.yt.unMute(); this.yt.setVolume(60); } else this.yt.mute(); this.sync(); },
-          onStateChange: (e) => { if (e.data === 1) $('bgVideo').classList.add('show'); },
-          onError: () => { $('bgVideo').classList.remove('show'); toast('Vídeo indisponível. A mostrar a fotografia da rota.'); }
+          onStateChange: (e) => { this.ytState = e.data; if (e.data === 1) { $('bgVideo').classList.add('show'); this.stuckSince = 0; $('tapPlay').classList.remove('show'); } },
+          onError: (e) => { this.ytErr = e.data; $('bgVideo').classList.remove('show'); $('tapPlay').classList.remove('show'); videoErr[r.id] = e.data; store.set('videoErr', videoErr);
+            toast(e.data === 101 || e.data === 150 || e.data === 153 ? 'O autor deste vídeo não permite que ele passe noutras apps. Escolha outro em Rotas → Vídeo YouTube.' : 'Vídeo indisponível (' + e.data + '). Escolha outro em Rotas.', 6000); }
         } });
     };
     if (window.YT && YT.Player) create();
@@ -903,7 +916,7 @@ const video = {
     this.savePos(); $('bgVideo').classList.remove('show');
     try { this.yt && this.yt.destroy(); } catch (e) {}
     if (this.url) URL.revokeObjectURL(this.url);
-    $('bgVideo').innerHTML = ''; Object.assign(this, { kind: null, yt: null, ytReady: false, el: null, playing: false, url: null });
+    $('bgVideo').innerHTML = ''; $('tapPlay').classList.remove('show'); Object.assign(this, { kind: null, yt: null, ytReady: false, el: null, playing: false, url: null, ytErr: null, ytState: -1, stuckSince: 0, lastPlayReq: 0 });
   },
   savePos() {
     try { const t = this.kind === 'yt' && this.ytReady ? this.yt.getCurrentTime() : this.kind === 'file' && this.el ? this.el.currentTime : null; if (t != null && this.routeId) store.set('vpos_' + this.routeId, t); } catch (e) {}
@@ -913,13 +926,24 @@ const video = {
     let rate = clamp(S.speed / (settings.ref || 5), 0.25, 2);
     if (this.kind === 'yt' && this.ytReady) {
       rate = YT_RATES.reduce((a, b) => Math.abs(b - rate) < Math.abs(a - rate) ? b : a);
-      if (moving) { if (rate !== this.rate) { this.yt.setPlaybackRate(rate); this.rate = rate; } if (!this.playing) { this.yt.playVideo(); this.playing = true; } }
-      else if (this.playing) { this.yt.pauseVideo(); this.playing = false; this.savePos(); }
+      const st = this.yt.getPlayerState ? this.yt.getPlayerState() : this.ytState;
+      if (moving && !this.ytErr) {
+        if (rate !== this.rate) { this.yt.setPlaybackRate(rate); this.rate = rate; }
+        if (st !== 1 && st !== 3) {                         // não está a tocar: volta a pedir (o 1.º pedido pode ser recusado)
+          if (!this.lastPlayReq || performance.now() - this.lastPlayReq > 3000) { this.yt.playVideo(); this.lastPlayReq = performance.now(); }
+          if (!this.stuckSince) this.stuckSince = performance.now();
+          else if (performance.now() - this.stuckSince > 7000) $('tapPlay').classList.add('show');
+        }
+        this.playing = true;
+      } else if (this.playing) { this.yt.pauseVideo(); this.playing = false; this.stuckSince = 0; $('tapPlay').classList.remove('show'); this.savePos(); }
     } else if (this.kind === 'file' && this.el) {
       if (moving) { this.el.playbackRate = rate; if (this.el.paused) this.el.play().catch(() => {}); this.playing = true; }
       else if (!this.el.paused) { this.el.pause(); this.playing = false; this.savePos(); }
     }
     if (performance.now() - this.saveT > 10000) { this.saveT = performance.now(); if (this.playing) this.savePos(); }
+  },
+  kick() {   // chamado dentro de um toque do utilizador: desbloqueia a reprodução no telemóvel
+    try { if (this.kind === 'yt' && this.ytReady && !this.ytErr) { this.yt.playVideo(); this.lastPlayReq = performance.now(); } if (this.el) this.el.play().catch(() => {}); } catch (e) {}
   },
   setSound(on) { try { if (this.kind === 'yt' && this.ytReady) { on ? (this.yt.unMute(), this.yt.setVolume(60)) : this.yt.mute(); } if (this.el) this.el.muted = !on; } catch (e) {} }
 };
@@ -1113,26 +1137,31 @@ function renderRoutes() {
   [...ROUTES].sort((a, b) => favs.includes(b.id) - favs.includes(a.id)).forEach(r => {
     const vc = routeVideo[r.id], vtxt = vc && vc.type === 'file' ? '🎞 ' + (vc.name || 'vídeo do telemóvel') : vc && vc.type === 'yt' && vc.id !== r.yt ? '▶ YouTube personalizado' : '▶ Vídeo sugerido';
     const done = progress[r.id] || 0;
+    const verr = videoErr[r.id] && !(vc && vc.type === 'file');
     const el = document.createElement('div'); el.className = 'panel' + (r.id === currentRoute.id ? ' current' : '');
-    el.innerHTML = `<div class="route-item" data-sel="1"><div class="route-thumb" style="background-image:url('${routeImg(r)}')"></div><div class="info"><div class="t">${r.emoji} ${r.name} ${favs.includes(r.id) ? '❤️' : ''}</div><div class="d">${r.desc}</div><div class="d">${vtxt}${done ? ' · ' + fmt1(done) + ' km feitos' : ''}</div></div><div class="km">${fmt1(r.km)} km</div></div>
-      <div class="route-actions"><button class="chip ${r.id === currentRoute.id ? '' : 'accent'}" data-a="sel">${r.id === currentRoute.id ? '✓ Rota atual' : 'Escolher rota'}</button><button class="chip" data-a="yt">Vídeo YouTube</button><button class="chip" data-a="file">Vídeo do telemóvel</button>${vc ? '<button class="chip" data-a="reset">Repor vídeo</button>' : ''}${done ? '<button class="chip danger" data-a="zero">Recomeçar rota</button>' : ''}</div>`;
+    el.innerHTML = `<div class="route-item" data-sel="1"><div class="route-thumb" style="background-image:url('${routeImg(r)}')"></div><div class="info"><div class="t">${r.emoji} ${r.name} ${favs.includes(r.id) ? '❤️' : ''}</div><div class="d">${r.desc}</div><div class="d">${verr ? '<span style="color:#ffb020">⚠ Vídeo bloqueado pelo autor · escolha outro</span>' : vtxt}${done ? ' · ' + fmt1(done) + ' km feitos' : ''}</div></div><div class="km">${fmt1(r.km)} km</div></div>
+      <div class="route-actions"><button class="chip ${r.id === currentRoute.id ? '' : 'accent'}" data-a="sel">${r.id === currentRoute.id ? '✓ Rota atual' : 'Escolher rota'}</button><button class="chip" data-a="test">▶ Testar vídeo</button><button class="chip" data-a="yt">Vídeo YouTube</button><button class="chip" data-a="file">Vídeo do telemóvel</button>${vc ? '<button class="chip" data-a="reset">Repor vídeo</button>' : ''}${done ? '<button class="chip danger" data-a="zero">Recomeçar rota</button>' : ''}</div>`;
     el.querySelector('[data-sel]').onclick = () => { selectRoute(r); showScreen('home'); };
     el.querySelectorAll('[data-a]').forEach(b => b.onclick = async () => {
       const a = b.dataset.a;
       if (a === 'sel') { selectRoute(r); showScreen('home'); }
+      if (a === 'test') { const vc2 = routeVideo[r.id]; if (vc2 && vc2.type === 'file') { toast('Este percurso usa um vídeo do telemóvel.'); return; }
+        $('testFrame').src = `https://www.youtube.com/embed/${routeYt(r)}?autoplay=1&mute=1&playsinline=1&rel=0`; $('dlgTest').classList.add('open'); }
       if (a === 'yt') { ytTarget = r; $('ytInput').value = vc && vc.type === 'yt' ? 'https://youtu.be/' + vc.id : ''; $('dlgYt').classList.add('open'); }
       if (a === 'file') { fileTarget = r; $('videoFile').click(); }
-      if (a === 'reset') { delete routeVideo[r.id]; store.set('routeVideo', routeVideo); store.set('vpos_' + r.id, 0); db.del('video_' + r.id).catch(() => {}); if (r === currentRoute) video.load(r); renderRoutes(); }
+      if (a === 'reset') { delete routeVideo[r.id]; delete videoErr[r.id]; store.set('videoErr', videoErr); store.set('routeVideo', routeVideo); store.set('vpos_' + r.id, 0); db.del('video_' + r.id).catch(() => {}); if (r === currentRoute) video.load(r); renderRoutes(); }
       if (a === 'zero') { progress[r.id] = 0; store.set('progress', progress); store.set('vpos_' + r.id, 0); if (r === currentRoute) { video.load(r); render(); } renderRoutes(); }
     });
     list.appendChild(el);
   });
 }
 let ytTarget = null, fileTarget = null;
+$('testClose').onclick = () => { $('testFrame').src = 'about:blank'; $('dlgTest').classList.remove('open'); };
 $('ytCancel').onclick = () => $('dlgYt').classList.remove('open');
 $('ytOk').onclick = () => {
   const m = $('ytInput').value.match(/(?:youtu\.be\/|v=|embed\/|shorts\/|live\/)([A-Za-z0-9_-]{11})/) || $('ytInput').value.trim().match(/^([A-Za-z0-9_-]{11})$/);
   if (!m) { toast('Link do YouTube inválido.'); return; }
+  delete videoErr[ytTarget.id]; store.set('videoErr', videoErr);
   routeVideo[ytTarget.id] = { type: 'yt', id: m[1] }; store.set('routeVideo', routeVideo); preloadImg(ytTarget); store.set('vpos_' + ytTarget.id, 0);
   $('dlgYt').classList.remove('open'); if (ytTarget === currentRoute) video.load(currentRoute); renderRoutes(); toast('Vídeo guardado ✓');
 };
@@ -1300,9 +1329,11 @@ $('btnRight').onclick = () => {
   else if (!settings.demo) { TM.connected ? toast('Passadeira ligada') : TM.connect(); }
 };
 $('btnMain').onclick = () => {
+  video.kick();
   if (S.state === 'idle') { if (settings.mode === 'ksfit' || TM.connected || settings.demo) startSession(); else TM.connect(); }
   else if (S.state === 'running') pauseSession(); else resumeSession();
 };
+$('tapPlay').onclick = () => { video.kick(); $('tapPlay').classList.remove('show'); video.stuckSince = performance.now(); };
 $('endCancel').onclick = () => $('dlgEnd').classList.remove('open');
 $('endOk').onclick = endSession;
 $('btnFav').onclick = () => { const id = currentRoute.id; favs = favs.includes(id) ? favs.filter(f => f !== id) : favs.concat(id); store.set('favs', favs); render(); toast(favs.includes(id) ? 'Adicionada aos favoritos ❤️' : 'Removida dos favoritos'); };
