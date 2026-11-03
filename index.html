@@ -228,6 +228,14 @@
   .dialog .sum b { font-family: var(--cond); font-size: 1.5rem; display: block; }
   .dialog .sum span { font-size: .75rem; color: var(--sub); }
   .dialog .row { display: flex; gap: 10px; }
+  .bk-t { margin: 0 0 10px; font-weight: 600; }
+  .chip.bk-save { background: var(--cyan); color: #03121a; border-color: var(--cyan); font-weight: 700; }
+  .chip.bk-load { border-color: #00ff9c; color: #00ff9c; font-weight: 700; }
+  .bk-opts { display: grid; gap: 8px; margin: 12px 0; }
+  .bk-opts button { padding: 12px; border-radius: 14px; font-weight: 700; border: 1px solid #ff5c7a; background: rgba(255,92,122,.08); color: #ff8095; }
+  .bk-opts button.bk-merge { background: var(--cyan); color: #03121a; border: 0; }
+  .bk-opts small { display: block; font-weight: 400; font-size: .78rem; margin-top: 3px; }
+  #bkInfo p { margin: 8px 0; }
   .dialog .row button { flex: 1; padding: 13px; border-radius: 14px; border: 1px solid var(--line); background: rgba(255,255,255,.06); font-weight: 700; }
   .dialog .row button.ok { background: var(--cyan); color: #001; border: 0; }
   .dialog .edit { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 14px 0 4px; }
@@ -694,8 +702,16 @@
 
     <h2>Dados</h2>
     <div class="panel">
+      <p class="bk-t">💾 Cópia de segurança</p>
+      <p class="note" style="margin:0 0 12px">Guarda todos os treinos, medalhas, desafio semanal, perfil e definições num ficheiro. Use “Repor” para recuperar tudo, por exemplo num telemóvel novo.</p>
       <div class="route-actions">
-        <button class="chip" id="exportBtn">Exportar histórico (CSV)</button>
+        <button class="chip bk-save" id="bkSave">⬇ Guardar cópia</button>
+        <button class="chip bk-load" id="bkLoad">⬆ Repor cópia</button>
+        <input type="file" id="bkFile" accept=".json,application/json" hidden>
+      </div>
+      <p class="note" id="bkLast" style="margin:10px 0 4px"></p>
+      <div class="route-actions" style="margin-top:12px">
+        <button class="chip" id="exportBtn">Exportar para Excel (CSV)</button>
         <button class="chip danger" id="clearBtn">Apagar histórico</button>
       </div>
     </div>
@@ -754,6 +770,17 @@
       <p class="note">Confirme a data de cada treino. Se o printscreen não mostrava a data, escolha o dia em que fez o treino.</p>
       <div class="imp-list" id="impList"></div>
       <div class="row"><button id="impCancel">Cancelar</button><button class="ok" id="impOk">Importar</button></div>
+    </div>
+  </div>
+  <div class="dialog" id="dlgBk">
+    <div class="box">
+      <h3>Repor cópia de segurança</h3>
+      <div id="bkInfo"></div>
+      <div class="bk-opts">
+        <button class="bk-merge" id="bkMerge">Juntar (recomendado)<small>mantém os treinos atuais e acrescenta os que faltam, sem repetir</small></button>
+        <button class="bk-repl" id="bkRepl">Substituir tudo<small>apaga o que está na app e fica igual à cópia</small></button>
+      </div>
+      <div class="row"><button id="bkCancel">Cancelar</button></div>
     </div>
   </div>
   <div class="dialog" id="dlgDate">
@@ -2070,6 +2097,64 @@ $('exportBtn').onclick = () => {
   const rows = [['data', 'rota', 'distancia_km', 'tempo_s', 'kcal', 'passos', 'vel_media_kmh', 'vel_max_kmh', 'bpm_medio', 'bpm_max'], ...hist.map(h => [h.date, '"' + h.route + '"', h.dist, h.sec, h.kcal, h.steps, h.avg, h.vmax || '', h.hr || '', h.hrMax || ''])];
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([rows.map(r => r.join(';')).join('\n')], { type: 'text/csv' })); a.download = 'virtual-walk-historico.csv'; a.click();
 };
+
+/* ---------------- Cópia de segurança (guardar / repor) ---------------- */
+let bkReloading = false;
+const esc = (t) => String(t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const BK_SKIP = /^vw_(spTok|geom_|videoErr|vpos_|bkLast)/;
+function bkFmt(d) { d = new Date(d); return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`; }
+function bkDay(d) { d = new Date(d); return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`; }
+function renderBkLast() { const l = store.get('bkLast', null); $('bkLast').textContent = l ? `Última cópia: ${bkFmt(l.date)} · ${l.n} treino${l.n === 1 ? '' : 's'}` : 'Ainda não fez nenhuma cópia de segurança.'; }
+$('bkSave').onclick = async () => {
+  video.savePos && video.savePos(); store.set('progress', progress);
+  const data = {};
+  for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.startsWith('vw_') && !BK_SKIP.test(k)) { try { data[k.slice(3)] = JSON.parse(localStorage.getItem(k)); } catch (e) {} } }
+  const now = new Date(), n = (data.history || []).length, bk = { app: 'virtual-walk', version: 1, created: now.toISOString(), data };
+  const name = `virtual-walk-copia-${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}.json`;
+  const file = new File([JSON.stringify(bk)], name, { type: 'application/json' });
+  const done = () => { store.set('bkLast', { date: now.toISOString(), n }); renderBkLast(); };
+  try { if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: 'Cópia Virtual Walk' }); done(); toast('Cópia de segurança criada ✅'); return; } } catch (e) { if (e && e.name === 'AbortError') return; }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(file); a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  done(); toast('Cópia guardada em Transferências ✅');
+};
+let bkPending = null;
+$('bkLoad').onclick = () => { $('bkFile').value = ''; $('bkFile').click(); };
+$('bkFile').onchange = async (e) => {
+  const f = e.target.files[0]; if (!f) return;
+  let bk; try { bk = JSON.parse(await f.text()); } catch (err) { bk = null; }
+  if (!bk || bk.app !== 'virtual-walk' || !bk.data) { toast('Este ficheiro não é uma cópia do Virtual Walk.'); return; }
+  bkPending = bk; const h = bk.data.history || [], cur = getHist().length, med = Object.keys(bk.data.medals || {}).length;
+  const ds = h.map(x => +new Date(x.date)).filter(x => x).sort((a, b) => a - b);
+  $('bkInfo').innerHTML = `<p class="note">Ficheiro: ${esc(f.name)}<br>Criado em ${bkFmt(bk.created)}</p>
+    <p>📋 <b>${h.length} treino${h.length === 1 ? '' : 's'}</b>${ds.length ? ` (de ${bkDay(ds[0])} a ${bkDay(ds[ds.length - 1])})` : ''}<br>🏅 ${med} medalha${med === 1 ? '' : 's'}<br>👤 Perfil e definições</p>
+    <p class="note">Nesta app há agora ${cur} treino${cur === 1 ? '' : 's'}. Escolha como repor:</p>`;
+  $('bkMerge').style.display = cur ? '' : 'none';
+  $('dlgBk').classList.add('open');
+};
+$('bkCancel').onclick = () => { bkPending = null; $('dlgBk').classList.remove('open'); };
+function bkApply(mode) {
+  const d = bkPending && bkPending.data; if (!d) return;
+  if (mode === 'replace') {
+    Object.keys(localStorage).filter(k => k.startsWith('vw_') && !BK_SKIP.test(k)).forEach(k => localStorage.removeItem(k));
+    Object.entries(d).forEach(([k, v]) => store.set(k, v));
+  } else {
+    // juntar: treinos sem repetir (mesmo minuto e mesma distância), medalhas e favoritos somados; o resto só se faltar
+    const key = (h) => Math.round(+new Date(h.date) / 60000) + '|' + (+h.dist || 0).toFixed(2);
+    const cur = getHist(), seen = new Set(cur.map(key)), add = (d.history || []).filter(h => !seen.has(key(h)));
+    store.set('history', cur.concat(add).sort((a, b) => new Date(a.date) - new Date(b.date)));
+    store.set('medals', Object.assign({}, d.medals || {}, store.get('medals', {}) || {}));
+    store.set('favs', [...new Set([...(store.get('favs', []) || []), ...(d.favs || [])])]);
+    const pr = store.get('progress', {}) || {}; Object.entries(d.progress || {}).forEach(([k, v]) => { if (!(pr[k] >= v)) pr[k] = v; }); store.set('progress', pr);
+    Object.entries(d).forEach(([k, v]) => { if (!['history', 'medals', 'favs', 'progress'].includes(k) && localStorage.getItem('vw_' + k) == null) store.set(k, v); });
+    sessionStorage.setItem('vw_bkMsg', `Cópia reposta: ${add.length} treino${add.length === 1 ? '' : 's'} acrescentado${add.length === 1 ? '' : 's'} ✅`);
+  }
+  if (mode === 'replace') sessionStorage.setItem('vw_bkMsg', 'Cópia reposta ✅');
+  bkReloading = true; window.onbeforeunload = null; location.reload();
+}
+$('bkMerge').onclick = () => bkApply('merge');
+$('bkRepl').onclick = () => { if (getHist().length && !confirm('Substituir tudo? Os treinos que estão agora na app e não estão na cópia vão ser apagados.')) return; bkApply('replace'); };
+renderBkLast();
+try { const m = sessionStorage.getItem('vw_bkMsg'); if (m) { sessionStorage.removeItem('vw_bkMsg'); setTimeout(() => toast(m), 600); } } catch (e) {}
 $('clearBtn').onclick = () => { if (confirm('Apagar todo o histórico de caminhadas?')) { setHist([]); renderActivity(); toast('Histórico apagado'); } };
 
 /* ---------------- Perfil ---------------- */
@@ -2177,8 +2262,8 @@ $('hrBox').onclick = () => { if (!HR.connected) HR.connect(); };
 $('spdUp').onclick = () => TM.setSpeed((S.targetSpeed || S.speed) + 0.5);
 $('spdDown').onclick = () => TM.setSpeed((S.targetSpeed || S.speed) - 0.5);
 if (!S.targetSpeed) S.targetSpeed = settings.lastSpeed || 3;
-window.addEventListener('pagehide', () => { video.savePos(); store.set('progress', progress); });
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') { video.savePos(); store.set('progress', progress); } });
+window.addEventListener('pagehide', () => { if (bkReloading) return; video.savePos(); store.set('progress', progress); });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && !bkReloading) { video.savePos(); store.set('progress', progress); } });
 
 /* ---------------- Arranque ---------------- */
 bindSettings();
