@@ -1,11 +1,11 @@
 {
   "name": "Virtual Walk",
   "short_name": "Virtual Walk",
-  "description": "Percursos reais de Lisboa na WalkingPad R3 Hybrid",
+  "description": "Percursos reais de Portugal na WalkingPad R3 Hybrid",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "orientation": "portrait",
+  "orientation": "any",
   "background_color": "#0b0f19",
   "theme_color": "#0b0f19",
   "lang": "pt-PT",
