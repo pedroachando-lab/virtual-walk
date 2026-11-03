@@ -243,6 +243,136 @@
   .toast { position: fixed; left: 50%; bottom: calc(var(--nav-h) + 20px); transform: translate(-50%, 20px); background: #121a2c; border: 1px solid var(--line); padding: 10px 16px; border-radius: 14px; font-size: .85rem; z-index: 60; opacity: 0; transition: .25s; pointer-events: none; max-width: 90vw; text-align: center; }
   .toast.show { opacity: 1; transform: translate(-50%, 0); }
 
+  /* ---------- Objetivo, sequência, treino (início) ---------- */
+  .card-head .mid-chips { display: flex; gap: 6px; margin-left: auto; margin-right: 6px; }
+  .streak-chip { display: none; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 14px; background: rgba(255,120,0,.16); border: 1px solid rgba(255,150,40,.55); font-family: var(--cond); font-weight: 800; font-size: 1rem; color: #ffc07a; }
+  .streak-chip.show { display: inline-flex; }
+  .m-val.goal { display: flex; align-items: center; gap: 6px; }
+  .m-val.goal .ring svg { display: block; }
+  .pre-row { display: flex; gap: 8px; }
+  .pre-chip { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 9px 10px; border-radius: 14px; border: 1px solid var(--line); background: rgba(8,12,22,.72); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); font-weight: 700; font-size: .85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pre-chip.on { border-color: var(--orange); color: #ffd08a; }
+  .prog-list { display: flex; flex-direction: column; gap: 8px; margin: 12px 0 14px; max-height: 60vh; overflow-y: auto; }
+  .prog-item { text-align: left; padding: 10px 12px; border-radius: 14px; border: 1px solid var(--line); background: rgba(255,255,255,.05); }
+  .prog-item.on { border-color: var(--orange); box-shadow: 0 0 12px rgba(255,176,32,.3); }
+  .prog-item b { font-family: var(--cond); font-size: 1.15rem; display: block; }
+  .prog-item span { font-size: .78rem; color: var(--sub); }
+  .prog-bars { display: flex; align-items: flex-end; gap: 1px; height: 22px; margin-top: 6px; }
+  .prog-bars i { background: linear-gradient(180deg, var(--orange), #ff7a00); border-radius: 2px 2px 0 0; min-width: 2px; }
+
+  /* ---------- Ecrã de caminhada: vídeo em ecrã inteiro ---------- */
+  .walk { position: absolute; inset: 0; z-index: 28; pointer-events: none; display: none; }
+  .app.walking .walk { display: block; }
+  .app.walking .home .topbar, .app.walking .home .card, .app.walking .home .bottom, .app.walking .nav { display: none; }
+  .app.walking .home { z-index: 29; pointer-events: none; bottom: 0; }
+  .app.walking .minimap { pointer-events: auto; }
+  .app.walking .minimap.show:not(.big) { position: fixed; top: calc(max(12px, env(safe-area-inset-top)) + 76px); right: 12px; width: 120px; height: 120px; aspect-ratio: auto; }
+  .app.walking .minimap.big { inset: 84px 12px 42% 12px; }
+  .app.walking .tap-play { z-index: 31; }
+  .app.walking .toast { bottom: auto; top: 42%; }
+  .app.walking .shade { background: linear-gradient(180deg, rgba(8,12,22,.55) 0%, rgba(8,12,22,0) 22%, rgba(8,12,22,0) 55%, rgba(8,12,22,.6) 100%); }
+  .walk > * { pointer-events: auto; }
+  .w-top { position: absolute; top: max(12px, env(safe-area-inset-top)); left: 12px; right: 12px; display: flex; gap: 10px; align-items: center; }
+  .w-route { flex: 1; min-width: 0; background: rgba(6,10,20,.62); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--line); border-radius: 16px; padding: 9px 12px 10px; }
+  .w-rt { display: flex; justify-content: space-between; gap: 8px; font-family: var(--cond); font-weight: 800; font-size: 1.05rem; text-transform: uppercase; letter-spacing: .3px; }
+  .w-rt span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .w-rt b { color: var(--cyan); flex-shrink: 0; }
+  .w-bar { height: 5px; background: rgba(255,255,255,.15); border-radius: 3px; margin-top: 6px; overflow: hidden; }
+  .w-bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #00a6ff, var(--cyan)); box-shadow: 0 0 8px var(--cyan); transition: width .6s; }
+  .w-goal { width: 64px; height: 64px; flex-shrink: 0; border-radius: 50%; background: rgba(6,10,20,.62); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); display: grid; place-items: center; border: 1px solid var(--line); }
+  .w-goal svg { display: block; }
+  .w-stack { position: absolute; top: calc(max(12px, env(safe-area-inset-top)) + 78px); left: 12px; right: 12px; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; pointer-events: none; }
+  .app.mapon .w-stack { right: 144px; }
+  .w-stack > * { pointer-events: auto; }
+  .w-int { display: none; width: 100%; max-width: 420px; background: rgba(6,10,20,.74); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255,176,32,.65); border-radius: 16px; padding: 9px 12px; }
+  .w-int.show { display: block; }
+  .w-int .l1 { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-family: var(--cond); font-weight: 800; }
+  .w-int .seg { font-size: 1.1rem; text-transform: uppercase; color: var(--orange); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .w-int .seg em { font-style: normal; color: #fff; }
+  .w-int .rem { font-size: 1.6rem; }
+  .w-int .l2 { font-size: .78rem; color: #c9d3e2; margin-top: 1px; }
+  .w-int .pb { height: 4px; background: rgba(255,255,255,.15); border-radius: 2px; margin-top: 6px; overflow: hidden; }
+  .w-int .pb i { display: block; height: 100%; background: var(--orange); }
+  .w-int.done { border-color: var(--green); } .w-int.done .seg { color: var(--green); }
+  .w-ghost { display: none; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 14px; background: rgba(6,10,20,.72); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--line); font-weight: 700; font-size: .85rem; }
+  .w-ghost.show { display: inline-flex; }
+  .w-ghost.ahead { border-color: rgba(0,255,156,.6); color: var(--green); }
+  .w-ghost.behind { border-color: rgba(255,77,109,.6); color: #ff9db0; }
+  .w-poi { display: none; max-width: 360px; background: rgba(6,10,20,.82); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--cyan); border-radius: 16px; padding: 10px 12px; box-shadow: 0 0 18px var(--cyan-soft); }
+  .w-poi.show { display: block; animation: poiIn .45s ease-out; }
+  .w-poi b { display: block; font-family: var(--cond); font-size: 1.15rem; margin-bottom: 2px; }
+  .w-poi span { font-size: .86rem; color: #dbe3ee; line-height: 1.35; }
+  @keyframes poiIn { from { opacity: 0; transform: translateY(-10px); } }
+  .w-panel { position: absolute; left: 0; right: 0; bottom: 0; background: linear-gradient(180deg, rgba(6,10,20,.58), rgba(6,10,20,.9)); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-top: 1px solid var(--line); border-radius: 24px 24px 0 0; padding: 12px 14px calc(12px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 10px; }
+  .w-panel .music iframe { height: 80px; }
+  .w-hud { display: grid; grid-template-columns: repeat(4, 1fr); text-align: center; }
+  .w-hud > div + div { border-left: 1px solid rgba(255,255,255,.1); }
+  .w-hud b { display: block; font-family: var(--cond); font-weight: 800; font-size: clamp(1.7rem, 8.6vw, 2.7rem); line-height: 1; }
+  .w-hud span { font-size: .68rem; color: var(--sub); font-weight: 700; text-transform: uppercase; letter-spacing: .5px; }
+  .w-hud .hr b { color: #ff8095; }
+  .w-sub { text-align: center; font-size: .8rem; color: var(--sub); font-weight: 600; margin-top: -4px; }
+  .w-quick { display: flex; gap: 6px; }
+  .w-quick button { flex: 1; padding: 6px 0; border-radius: 12px; border: 1px solid var(--line); background: rgba(255,255,255,.06); font-family: var(--cond); font-weight: 800; font-size: 1rem; }
+  .w-quick button.on { border-color: var(--cyan); color: var(--cyan); background: rgba(0,229,255,.12); }
+  .w-ctl { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+  .w-btn { width: 60px; height: 60px; flex-shrink: 0; border-radius: 50%; border: 1px solid rgba(255,255,255,.22); background: rgba(255,255,255,.08); font-size: 2rem; font-weight: 700; display: grid; place-items: center; line-height: 1; }
+  .w-btn svg { width: 24px; height: 24px; }
+  .w-btn.small { width: 50px; height: 50px; }
+  .w-btn.stop { border-color: var(--red); box-shadow: 0 0 12px rgba(255,77,109,.4); }
+  .w-btn.on { border-color: var(--cyan); box-shadow: 0 0 12px var(--cyan-soft); }
+  .w-btn.hide { visibility: hidden; }
+  .w-ctl .play { width: 84px; height: 84px; flex-shrink: 0; }
+  .w-ctl .play svg { width: 38px; height: 38px; }
+  .w-hint { text-align: center; font-size: .75rem; color: var(--sub); margin-top: -4px; }
+  .w-hint b { color: #fff; }
+  @media (orientation: landscape) {
+    .app { --wp: min(44vw, 400px); }
+    .w-panel { left: auto; top: 0; width: var(--wp); border-radius: 22px 0 0 22px; border-top: 0; border-left: 1px solid var(--line); padding: max(10px, env(safe-area-inset-top)) 14px 10px; justify-content: center; overflow-y: auto; gap: 8px; }
+    .w-top, .w-stack { right: calc(var(--wp) + 12px); }
+    .app.mapon .w-stack { right: calc(var(--wp) + 144px); }
+    .app.walking .minimap.show:not(.big) { right: calc(var(--wp) + 12px); }
+    .app.walking .minimap.big { inset: 12px calc(var(--wp) + 12px) 12px 12px; }
+    .w-hud { grid-template-columns: 1fr 1fr; gap: 8px 0; }
+    .w-hud > div:nth-child(3) { border-left: 0; }
+    .w-hud b { font-size: clamp(1.7rem, 4.4vw, 2.5rem); }
+    .w-panel .music { display: none !important; }
+    .w-ctl .play { width: 72px; height: 72px; }
+    .w-btn { width: 52px; height: 52px; } .w-btn.small { width: 46px; height: 46px; }
+  }
+
+  /* ---------- Festa, medalhas, guia ---------- */
+  .confetti { position: fixed; inset: 0; pointer-events: none; z-index: 74; overflow: hidden; }
+  .confetti i { position: absolute; top: -16px; width: 9px; height: 14px; border-radius: 2px; animation: vwFall linear forwards; }
+  @keyframes vwFall { to { transform: translate(var(--dx), 108vh) rotate(760deg); } }
+  .badge-pop { position: fixed; left: 50%; top: 34%; transform: translate(-50%, -50%) scale(.85); z-index: 73; background: #0f1524; border: 2px solid var(--green); border-radius: 24px; padding: 18px 24px; text-align: center; box-shadow: 0 0 40px rgba(0,255,156,.35); opacity: 0; transition: .3s; pointer-events: none; min-width: 240px; max-width: 86vw; }
+  .badge-pop.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  .badge-pop i { font-style: normal; font-size: 3.2rem; display: block; line-height: 1.1; }
+  .badge-pop b { font-family: var(--cond); font-size: 1.5rem; display: block; text-transform: uppercase; margin-top: 4px; }
+  .badge-pop span { font-size: .86rem; color: var(--sub); }
+  .streak-row { display: flex; align-items: center; gap: 14px; }
+  .streak-row .fire { font-size: 2.4rem; }
+  .streak-row b { font-family: var(--cond); font-size: 1.6rem; display: block; }
+  .streak-row span { font-size: .8rem; color: var(--sub); }
+  .medals { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+  .medal { background: var(--glass); border: 1px solid var(--line); border-radius: 14px; padding: 10px 6px; text-align: center; opacity: .42; filter: grayscale(1); }
+  .medal.on { opacity: 1; filter: none; border-color: rgba(255,200,60,.55); box-shadow: 0 0 12px rgba(255,190,40,.18); }
+  .medal i { font-style: normal; font-size: 1.8rem; display: block; }
+  .medal b { display: block; font-size: .78rem; margin-top: 4px; line-height: 1.15; }
+  .medal span { display: block; font-size: .66rem; color: var(--sub); margin-top: 2px; line-height: 1.2; }
+  .guide { position: fixed; inset: 0; z-index: 66; background: rgba(3,6,12,.9); display: none; align-items: center; justify-content: center; padding: 20px; }
+  .guide.open { display: flex; }
+  .g-box { width: 100%; max-width: 400px; background: #0f1524; border: 1px solid rgba(0,229,255,.35); border-radius: 24px; padding: 24px 20px 18px; text-align: center; box-shadow: 0 0 40px rgba(0,229,255,.15); }
+  .g-n { font-size: .78rem; font-weight: 700; color: var(--cyan); letter-spacing: 1px; text-transform: uppercase; }
+  .g-ic { font-size: 3.6rem; margin: 10px 0 6px; }
+  .g-t { font-family: var(--cond); font-weight: 800; font-size: 1.6rem; text-transform: uppercase; line-height: 1.1; }
+  .g-d { font-size: .95rem; color: #c9d3e2; line-height: 1.45; margin: 10px 0 16px; min-height: 5.8em; }
+  .g-dots { display: flex; justify-content: center; gap: 6px; margin-bottom: 16px; }
+  .g-dots i { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,.2); }
+  .g-dots i.on { background: var(--cyan); width: 22px; border-radius: 4px; }
+  .g-box .row { display: flex; gap: 10px; }
+  .g-box .row button { flex: 1; padding: 13px; border-radius: 14px; border: 1px solid var(--line); background: rgba(255,255,255,.06); font-weight: 700; }
+  .g-box .row button.ok { background: var(--cyan); color: #001; border: 0; }
+
   @media (max-height: 700px) {
     .m-val { font-size: 1.6rem; }
     .stat-line { font-size: 1.1rem; }
@@ -283,6 +413,7 @@
       <section class="card" id="card">
         <div class="card-head">
           <div class="clock" id="clock">--:--</div>
+          <div class="mid-chips"><span class="streak-chip" id="streakChip"></span></div>
           <button class="fav-btn" id="btnFav" aria-label="Favorito"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></svg></button>
         </div>
         <div class="route-row">
@@ -305,7 +436,7 @@
         <div class="metrics">
           <div><div class="m-label">Passos</div><div class="m-val" id="stepsTxt">0</div></div>
           <div class="tap" id="hrBox"><div class="m-label">Ritmo cardíaco</div><div class="m-val hr"><span id="hrTxt">--</span><small>BPM</small></div></div>
-          <div><div class="m-label">Inclinação do percurso</div><div class="m-val" id="gradeTxt">--</div></div>
+          <div class="tap" id="goalBox"><div class="m-label">Objetivo de hoje</div><div class="m-val goal"><span class="ring" id="goalRing"></span><span id="goalTxt">0</span><small id="goalUnit">/3 km</small></div></div>
           <div><div class="m-label">Ritmo</div><div class="m-val"><span id="paceTxt">--'--"</span><small>/km</small></div></div>
         </div>
       </section>
@@ -318,7 +449,7 @@
       </aside>
     </div>
 
-    <div class="bottom">
+    <div class="bottom" id="bottomBox">
       <div class="hud" id="hud">
         <div><b id="hudDist">0,00</b><span>km</span></div>
         <div><b id="hudTime">00:00</b><span>tempo</span></div>
@@ -337,6 +468,8 @@
         <div class="spd-quick" id="spdQuick"></div>
       </div>
 
+      <div class="pre-row"><button class="pre-chip" id="progChip">🏋️ Treino: Livre</button><button class="pre-chip" id="goalChip">🎯 Objetivo</button></div>
+
       <div class="actions">
         <div class="act"><button class="rbtn" id="btnLeft" aria-label="Rotas"></button><span id="leftLbl">Rotas</span></div>
         <div class="act"><button class="play" id="btnMain" aria-label="Iniciar"></button><span id="mainLabel">Iniciar</span></div>
@@ -345,10 +478,42 @@
     </div>
   </main>
 
+  <!-- ================= CAMINHADA (vídeo em ecrã inteiro) ================= -->
+  <section class="walk" id="walk">
+    <div class="w-top">
+      <div class="w-route"><div class="w-rt"><span id="wRouteName">—</span><b id="wRoutePct">0%</b></div><div class="w-bar"><i id="wRouteBar"></i></div></div>
+      <div class="w-goal" id="wGoal" title="Objetivo de hoje"></div>
+    </div>
+    <div class="w-stack">
+      <div class="w-int" id="wInt"></div>
+      <div class="w-ghost" id="wGhost"></div>
+      <div class="w-poi" id="wPoi"></div>
+    </div>
+    <div class="w-panel" id="wPanel">
+      <div id="wMusicSlot"></div>
+      <div class="w-hud">
+        <div><b id="wTime">00:00</b><span>tempo</span></div>
+        <div><b id="wDist">0,00</b><span>km</span></div>
+        <div><b id="wSpeed">0,0</b><span>km/h</span></div>
+        <div class="hr tap" id="wHrBox"><b id="wHr">--</b><span>BPM</span></div>
+      </div>
+      <div class="w-sub" id="wSub"></div>
+      <div class="w-quick" id="wQuick"></div>
+      <div class="w-ctl">
+        <button class="w-btn small stop" id="wEnd" aria-label="Terminar"><svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2.5" fill="#ff4d6d"/></svg></button>
+        <button class="w-btn" id="wDown" aria-label="Diminuir velocidade">−</button>
+        <button class="play" id="wMain" aria-label="Pausar"></button>
+        <button class="w-btn" id="wUp" aria-label="Aumentar velocidade">+</button>
+        <button class="w-btn small" id="wMap" aria-label="Mapa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></button>
+      </div>
+      <div class="w-hint" id="wHint"></div>
+    </div>
+  </section>
+
   <!-- ================= ROTAS ================= -->
   <section class="screen" id="scr-routes">
     <h1>Rotas</h1>
-    <p class="lead">Percursos reais em Lisboa. Toque numa rota para a escolher. O vídeo acompanha a velocidade da passadeira.</p>
+    <p class="lead">Percursos reais em Portugal, com curiosidades ao longo do caminho. Toque numa rota para a escolher. O vídeo acompanha a velocidade da passadeira.</p>
     <div id="routeList"></div>
     <p class="note">Em cada rota pode trocar o vídeo por outro do YouTube (cole o link) ou por um vídeo guardado no telemóvel. Os vídeos sugeridos são passeios a pé de canais do YouTube; se algum deixar de estar disponível, aparece a fotografia da rota.</p>
     <input type="file" id="videoFile" accept="video/*" hidden>
@@ -359,6 +524,9 @@
     <h1>Atividade</h1>
     <p class="lead">Histórico guardado apenas neste telemóvel.</p>
     <div class="stats-grid" id="statsGrid"></div>
+    <h2>Sequência e medalhas</h2>
+    <div class="panel" id="streakBox"></div>
+    <div class="medals" id="medalGrid"></div>
     <h2>Últimos 7 dias</h2>
     <div class="panel"><div class="week" id="weekChart"></div></div>
     <h2>Sessões</h2>
@@ -374,6 +542,13 @@
     <div class="panel">
       <div class="field"><label>Peso<small>Usado para calcular as calorias</small></label><input type="number" id="setWeight" min="30" max="250" step="0.5"></div>
       <div class="field"><label>Altura (cm)<small>Usada para estimar o comprimento da passada</small></label><input type="number" id="setHeight" min="120" max="230"></div>
+    </div>
+
+    <h2>Objetivo e motivação</h2>
+    <div class="panel" id="goalPanel">
+      <div class="field"><label>Objetivo diário<small>Anel de progresso e festa quando o cumprir</small></label><div style="display:flex;gap:6px"><input type="number" id="setGoalVal" min="0.5" max="300" step="0.5" style="width:74px"><select id="setGoalType" style="width:82px"><option value="km">km</option><option value="min">min</option></select></div></div>
+      <div class="field"><label>Voz de incentivo<small>Avisos em português a cada km, nos intervalos, no objetivo, nas medalhas e nos pontos de interesse</small></label><label class="switch"><input type="checkbox" id="setVoice"><span></span></label></div>
+      <div class="route-actions"><button class="chip" id="voiceTest">🔊 Testar voz</button><button class="chip accent" id="guideBtn">Ver guia rápido</button></div>
     </div>
 
     <h2>Dispositivos</h2>
@@ -472,6 +647,25 @@
     <div class="vtip">Toque na imagem para esconder os botões e fazer printscreen</div>
     <div class="vbar"><button id="vClose">Fechar</button><button id="vSave">Guardar</button><button class="ok" id="vShare">Partilhar</button></div>
   </div>
+  <div class="dialog" id="dlgProg">
+    <div class="box">
+      <h3>Treino</h3>
+      <p class="note">Nos treinos por intervalos a voz avisa 10 segundos antes de cada mudança. Com a KS Fit, mude a velocidade no comando da passadeira quando ouvir o aviso: a velocidade aqui muda sozinha.</p>
+      <div class="prog-list" id="progList"></div>
+      <div class="row"><button id="progClose">Fechar</button></div>
+    </div>
+  </div>
+  <div class="guide" id="guide">
+    <div class="g-box">
+      <div class="g-n" id="gN"></div>
+      <div class="g-ic" id="gIc"></div>
+      <div class="g-t" id="gT"></div>
+      <div class="g-d" id="gD"></div>
+      <div class="g-dots" id="gDots"></div>
+      <div class="row"><button id="gSkip">Saltar</button><button class="ok" id="gNext">Seguinte</button></div>
+    </div>
+  </div>
+  <div class="badge-pop" id="badgePop"></div>
   <div class="toast" id="toast"></div>
 </div>
 
@@ -497,7 +691,7 @@ const store = {
 
 /* ---------------- Definições ---------------- */
 const DEFAULTS = { weight: 70, height: 170, autoStart: true, control: false, wake: true, ref: 5, videoSound: false, demo: false,
-  spLink: '', spClient: '', mode: 'ksfit', lastSpeed: 3 };
+  spLink: '', spClient: '', mode: 'ksfit', lastSpeed: 3, goalType: 'km', goalVal: 3, voice: true, program: 'free' };
 const settings = Object.assign({}, DEFAULTS, store.get('settings', {}));
 if (settings.spLink === 'https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M') settings.spLink = '';
 function saveSettings() { store.set('settings', settings); }
@@ -506,16 +700,70 @@ function saveSettings() { store.set('settings', settings); }
 const ROUTES = [
   { id: 'alfama', emoji: '🚋', name: 'Elétrico 28 & Alfama', loc: 'Lisboa, PT', desc: 'Martim Moniz, Graça, Sé, Chiado e Estrela',
     yt: 'i-5v3JLmqJY',
-    pts: [[38.7163,-9.1357],[38.7172,-9.1335],[38.7170,-9.1313],[38.7158,-9.1300],[38.7150,-9.1283],[38.7130,-9.1290],[38.7118,-9.1302],[38.7106,-9.1318],[38.7098,-9.1335],[38.7100,-9.1365],[38.7104,-9.1400],[38.7107,-9.1435],[38.7115,-9.1475],[38.7125,-9.1530],[38.7136,-9.1597],[38.7148,-9.1683]] },
+    pts: [[38.7163,-9.1357],[38.7172,-9.1335],[38.7170,-9.1313],[38.7158,-9.1300],[38.7150,-9.1283],[38.7130,-9.1290],[38.7118,-9.1302],[38.7106,-9.1318],[38.7098,-9.1335],[38.7100,-9.1365],[38.7104,-9.1400],[38.7107,-9.1435],[38.7115,-9.1475],[38.7125,-9.1530],[38.7136,-9.1597],[38.7148,-9.1683]],
+    poi: [[38.7163,-9.1357,'Martim Moniz','Ponto de partida do elétrico 28, a carreira mais famosa de Lisboa.'],
+      [38.7170,-9.1313,'Graça','Um dos bairros mais altos de Lisboa, com o miradouro da Senhora do Monte aqui perto.'],
+      [38.7150,-9.1283,'São Vicente de Fora','O mosteiro guarda o Panteão dos Bragança, a última família real portuguesa.'],
+      [38.7118,-9.1302,'Miradouro de Santa Luzia','Painéis de azulejo e vista sobre os telhados de Alfama até ao Tejo.'],
+      [38.7098,-9.1335,'Sé de Lisboa','A catedral mais antiga da cidade, começada a construir em 1147.'],
+      [38.7104,-9.1385,'Baixa Pombalina','Reconstruída depois do terramoto de 1755, com ruas em quadrícula, por ordem do Marquês de Pombal.'],
+      [38.7107,-9.1435,'Largo de Camões','Homenagem ao poeta de Os Lusíadas, entre o Chiado e o Bairro Alto.'],
+      [38.7136,-9.1597,'Basílica da Estrela','Mandada construir pela rainha D. Maria I e terminada em 1790.'],
+      [38.7148,-9.1683,'Prazeres','Fim da linha do 28, junto a um dos maiores cemitérios de Lisboa.']] },
   { id: 'tejo', emoji: '🌉', name: 'Parque Tejo & Ponte Vasco da Gama', loc: 'Parque das Nações, Lisboa', desc: 'Passeio ribeirinho até ao Trancão, ida e volta',
     yt: 'bQS9JhND4_w',
-    pts: [[38.7678,-9.0990],[38.7690,-9.0955],[38.7740,-9.0935],[38.7790,-9.0928],[38.7830,-9.0922],[38.7870,-9.0915],[38.7930,-9.0925],[38.7870,-9.0915],[38.7830,-9.0922],[38.7790,-9.0928],[38.7740,-9.0935],[38.7690,-9.0955],[38.7678,-9.0990]] },
+    pts: [[38.7678,-9.0990],[38.7690,-9.0955],[38.7740,-9.0935],[38.7790,-9.0928],[38.7830,-9.0922],[38.7870,-9.0915],[38.7930,-9.0925],[38.7870,-9.0915],[38.7830,-9.0922],[38.7790,-9.0928],[38.7740,-9.0935],[38.7690,-9.0955],[38.7678,-9.0990]],
+    poi: [[38.7678,-9.0990,'Gare do Oriente','Estação desenhada pelo arquiteto Santiago Calatrava para a Expo 98.'],
+      [38.7740,-9.0935,'Torre Vasco da Gama','Com 145 metros, é um dos edifícios mais altos do país.'],
+      [38.7830,-9.0922,'Parque Tejo','Recebeu a missa final da Jornada Mundial da Juventude, em 2023.'],
+      [38.7870,-9.0915,'Ponte Vasco da Gama','Inaugurada em 1998, tem mais de 12 quilómetros e é uma das pontes mais longas da Europa.'],
+      [38.7930,-9.0925,'Foz do Trancão','Ponto de viragem: aqui o rio Trancão desagua no Tejo.']] },
   { id: 'belem', emoji: '⛵', name: 'Ribeira das Naus a Belém', loc: 'Belém, Lisboa', desc: 'Cais do Sodré, MAAT, Padrão e Torre de Belém',
     yt: 'QTNK9AskpWU',
-    pts: [[38.7075,-9.1365],[38.7067,-9.1410],[38.7056,-9.1446],[38.7050,-9.1500],[38.7045,-9.1560],[38.7030,-9.1650],[38.7015,-9.1720],[38.6990,-9.1800],[38.6970,-9.1880],[38.6957,-9.1935],[38.6945,-9.2000],[38.6937,-9.2057],[38.6925,-9.2110],[38.6916,-9.2160]] },
+    pts: [[38.7075,-9.1365],[38.7067,-9.1410],[38.7056,-9.1446],[38.7050,-9.1500],[38.7045,-9.1560],[38.7030,-9.1650],[38.7015,-9.1720],[38.6990,-9.1800],[38.6970,-9.1880],[38.6957,-9.1935],[38.6945,-9.2000],[38.6937,-9.2057],[38.6925,-9.2110],[38.6916,-9.2160]],
+    poi: [[38.7075,-9.1365,'Praça do Comércio','O antigo Terreiro do Paço, onde ficava o palácio real até ao terramoto de 1755.'],
+      [38.7067,-9.1410,'Ribeira das Naus','Aqui se construíam os navios da época dos Descobrimentos.'],
+      [38.7056,-9.1446,'Cais do Sodré','Daqui partem os comboios para Cascais e os barcos para a outra margem.'],
+      [38.6990,-9.1800,'Doca de Santo Amaro','Mesmo por baixo da Ponte 25 de Abril, inaugurada em 1966.'],
+      [38.6957,-9.1935,'MAAT','Museu de Arte, Arquitetura e Tecnologia, aberto em 2016, com uma cobertura onde se pode passear.'],
+      [38.6937,-9.2057,'Padrão dos Descobrimentos','Monumento de 1960, feito para os 500 anos da morte do Infante D. Henrique.'],
+      [38.6916,-9.2160,'Torre de Belém','Construída no século XVI, é Património Mundial da UNESCO desde 1983.']] },
   { id: 'nacoes', emoji: '🏙️', name: 'Parque das Nações', loc: 'Oriente, Lisboa', desc: 'Marina, Oceanário e Torre Vasco da Gama (circuito)',
     yt: 'hznExEueS6A',
-    pts: [[38.7678,-9.0990],[38.7700,-9.0965],[38.7740,-9.0935],[38.7700,-9.0928],[38.7660,-9.0930],[38.7635,-9.0925],[38.7600,-9.0935],[38.7560,-9.0948],[38.7575,-9.0985],[38.7620,-9.0985],[38.7678,-9.0990]] }
+    pts: [[38.7678,-9.0990],[38.7700,-9.0965],[38.7740,-9.0935],[38.7700,-9.0928],[38.7660,-9.0930],[38.7635,-9.0925],[38.7600,-9.0935],[38.7560,-9.0948],[38.7575,-9.0985],[38.7620,-9.0985],[38.7678,-9.0990]],
+    poi: [[38.7678,-9.0990,'Gare do Oriente','Estação desenhada por Santiago Calatrava para a Expo 98.'],
+      [38.7740,-9.0935,'Torre Vasco da Gama','Com 145 metros, é um dos edifícios mais altos do país.'],
+      [38.7635,-9.0925,'Oceanário de Lisboa','Abriu com a Expo 98 e é um dos maiores aquários da Europa.'],
+      [38.7600,-9.0935,'Pavilhão de Portugal','Obra de Siza Vieira, famosa pela enorme pala de betão suspensa.'],
+      [38.7560,-9.0948,'Marina do Parque das Nações','Construída para a Expo 98, junto ao rio.']] },
+  { id: 'porto', emoji: '🍷', name: 'Ribeira do Porto & Gaia', loc: 'Porto, PT', desc: 'Ribeira, Ponte Luís I, caves de Gaia e Alfândega',
+    yt: 'Oey0AI5SyoE',
+    pts: [[41.1407,-8.6133],[41.1398,-8.6098],[41.1385,-8.6098],[41.1375,-8.6140],[41.1368,-8.6190],[41.1375,-8.6140],[41.1385,-8.6098],[41.1398,-8.6098],[41.1407,-8.6133],[41.1418,-8.6175],[41.1428,-8.6215]],
+    poi: [[41.1407,-8.6133,'Ribeira','O coração do Porto antigo, Património Mundial da UNESCO desde 1996.'],
+      [41.1398,-8.6098,'Ponte Luís I','Inaugurada em 1886, foi desenhada por Théophile Seyrig, que trabalhou com Gustave Eiffel.'],
+      [41.1375,-8.6140,'Caves de Vila Nova de Gaia','É aqui que o vinho do Porto envelhece em barricas há séculos.'],
+      [41.1428,-8.6215,'Alfândega Nova','Edifício de 1869, hoje Museu dos Transportes e Comunicações.']] },
+  { id: 'sintra', emoji: '🏰', name: 'Vila de Sintra', loc: 'Sintra, PT', desc: 'Palácio Nacional, Regaleira e Seteais, ida e volta',
+    yt: 'SjXFoSrEOKE',
+    pts: [[38.7998,-9.3863],[38.7985,-9.3880],[38.7976,-9.3906],[38.7963,-9.3958],[38.7960,-9.3990],[38.7963,-9.3958],[38.7976,-9.3906],[38.7985,-9.3880],[38.7998,-9.3863]],
+    poi: [[38.7998,-9.3863,'Paisagem Cultural de Sintra','A primeira paisagem cultural da Europa classificada pela UNESCO, em 1995.'],
+      [38.7976,-9.3906,'Palácio Nacional de Sintra','Reconhece-se pelas duas grandes chaminés cónicas da cozinha.'],
+      [38.7963,-9.3958,'Quinta da Regaleira','Criada por Carvalho Monteiro, esconde o misterioso Poço Iniciático.'],
+      [38.7960,-9.3990,'Palácio de Seteais','Palácio do século XVIII, hoje hotel, com vista para a serra e para o mar.']] },
+  { id: 'cascais', emoji: '🌊', name: 'Paredão do Estoril a Cascais', loc: 'Cascais, PT', desc: 'Passeio marítimo, Tamariz, Baía e Cidadela',
+    yt: 'ipG3iMdoB1c',
+    pts: [[38.7010,-9.3740],[38.7040,-9.3960],[38.7020,-9.4050],[38.6985,-9.4170],[38.6965,-9.4200],[38.6935,-9.4210]],
+    poi: [[38.7010,-9.3740,'Paredão','Passeio marítimo de mais de 3 km entre São João do Estoril e Cascais.'],
+      [38.7040,-9.3960,'Casino Estoril','Abriu em 1931 e terá inspirado Ian Fleming a escrever Casino Royale.'],
+      [38.6965,-9.4200,'Baía de Cascais','Antiga vila de pescadores, ainda com barcos de pesca junto à praia.'],
+      [38.6935,-9.4210,'Cidadela de Cascais','Fortaleza do século XVII, hoje com pousada e galerias de arte.']] },
+  { id: 'madeira', emoji: '🌿', name: 'Levada do Caldeirão Verde', loc: 'Santana, Madeira', desc: 'PR9: floresta Laurissilva, túneis e cascata (traçado aproximado)',
+    yt: '19Ve4hnP1Ao', noSnap: true,
+    pts: [[32.7840,-16.9050],[32.7860,-16.9150],[32.7900,-16.9230],[32.7950,-16.9300],[32.7980,-16.9350]],
+    poi: [[32.7840,-16.9050,'Queimadas','Perto de Santana, terra das casas típicas com telhado de colmo.'],
+      [32.7860,-16.9150,'Floresta Laurissilva','Floresta muito antiga, Património Mundial da UNESCO desde 1999.'],
+      [32.7930,-16.9280,'Túneis da levada','Escavados à mão na rocha para levar a água às zonas agrícolas.'],
+      [32.7980,-16.9350,'Caldeirão Verde','Uma cascata com cerca de 100 metros que cai numa lagoa verde.']] }
 ];
 const routeVideo = store.get('routeVideo', {});
 // A imagem de cada rota é um fotograma do próprio vídeo (alta resolução quando existe)
@@ -533,40 +781,23 @@ let currentRoute = ROUTES.find(r => r.id === store.get('route', 'alfama')) || RO
 
 function hav(a, b) { const R = 6371, dLat = (b[0]-a[0])*Math.PI/180, dLng = (b[1]-a[1])*Math.PI/180;
   const x = Math.sin(dLat/2)**2 + Math.cos(a[0]*Math.PI/180)*Math.cos(b[0]*Math.PI/180)*Math.sin(dLng/2)**2; return 2*R*Math.asin(Math.sqrt(x)); }
-function prepGeom(r) { r.geom = r.geom || r.pts; r.cum = [0]; for (let i = 1; i < r.geom.length; i++) r.cum.push(r.cum[i-1] + hav(r.geom[i-1], r.geom[i])); r.km = r.cum[r.cum.length-1]; }
-ROUTES.forEach(r => { const g = store.get('geom_' + r.id, null); if (g) r.geom = g; r.elev = store.get('elev_' + r.id, null); prepGeom(r); });
+function prepGeom(r) { r.geom = r.geom || r.pts; r.cum = [0]; for (let i = 1; i < r.geom.length; i++) r.cum.push(r.cum[i-1] + hav(r.geom[i-1], r.geom[i])); r.km = r.cum[r.cum.length-1];
+  // pontos de interesse: km do ponto do traçado mais próximo (o primeiro, nas rotas de ida e volta)
+  r.pois = (r.poi || []).map(([la, lo, n, f]) => { const ds = r.geom.map(g => hav(g, [la, lo])), mn = Math.min(...ds), i = ds.findIndex(d => d <= mn + 0.03); return { n, f, km: r.cum[i] }; }).sort((a, b) => a.km - b.km); }
+ROUTES.forEach(r => { const g = store.get('geom_' + r.id, null); if (g && !r.noSnap) r.geom = g; try { localStorage.removeItem('vw_elev_' + r.id); } catch (e) {} prepGeom(r); });
 function posAt(r, km) { km = clamp(km, 0, r.km); let i = 1; while (i < r.cum.length - 1 && r.cum[i] < km) i++;
   const seg = r.cum[i] - r.cum[i-1] || 1, f = (km - r.cum[i-1]) / seg, a = r.geom[i-1], b = r.geom[i]; return [a[0] + (b[0]-a[0])*f, a[1] + (b[1]-a[1])*f]; }
-function elevAt(r, km) { if (!r.elev) return null; const e = r.elev, step = r.km / (e.length - 1), x = clamp(km / step, 0, e.length - 1), i = Math.floor(x), f = x - i;
-  return i >= e.length - 1 ? e[e.length-1] : e[i] + (e[i+1]-e[i])*f; }
-function gradeAt(r, km) { if (!r.elev) return null; const a = Math.max(0, km - 0.05), b = Math.min(r.km, km + 0.05); if (b - a < 0.01) return 0; return (elevAt(r, b) - elevAt(r, a)) / ((b - a) * 1000) * 100; }
-
-// Ajusta o traçado às ruas (OSRM a pé) e obtém a altimetria real (Open-Meteo). Fica em cache.
+// Ajusta o traçado às ruas (OSRM a pé). Fica em cache.
 async function enrichRoute(r) {
+  if (r.noSnap || store.get('geom_' + r.id, null)) return;
   try {
-    if (!store.get('geom_' + r.id, null)) {
-      const coords = r.pts.map(p => `${p[1]},${p[0]}`).join(';');
-      const res = await fetch(`https://routing.openstreetmap.de/routed-foot/route/v1/foot/${coords}?overview=full&geometries=geojson`);
-      const j = await res.json();
-      if (j.routes && j.routes[0]) {
-        let g = j.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
-        if (g.length > 600) { const k = Math.ceil(g.length / 600); g = g.filter((_, i) => i % k === 0 || i === g.length - 1); }
-        r.geom = g; store.set('geom_' + r.id, g); store.set('elev_' + r.id, null); r.elev = null; prepGeom(r);
-      }
-    }
-  } catch (e) {}
-  try {
-    if (!r.elev) {
-      const n = clamp(Math.round(r.km * 10) + 1, 10, 200), lats = [], lngs = [];
-      for (let i = 0; i < n; i++) { const p = posAt(r, r.km * i / (n - 1)); lats.push(p[0].toFixed(5)); lngs.push(p[1].toFixed(5)); }
-      let elev = [];
-      for (let s = 0; s < n; s += 100) {
-        const res = await fetch(`https://api.open-meteo.com/v1/elevation?latitude=${lats.slice(s, s+100).join(',')}&longitude=${lngs.slice(s, s+100).join(',')}`);
-        const j = await res.json(); if (!j.elevation) throw 0; elev = elev.concat(j.elevation);
-      }
-      // suaviza ligeiramente
-      r.elev = elev.map((v, i) => (elev[Math.max(0,i-1)] + v*2 + elev[Math.min(elev.length-1,i+1)]) / 4);
-      store.set('elev_' + r.id, r.elev);
+    const coords = r.pts.map(p => `${p[1]},${p[0]}`).join(';');
+    const res = await fetch(`https://routing.openstreetmap.de/routed-foot/route/v1/foot/${coords}?overview=full&geometries=geojson`);
+    const j = await res.json();
+    if (j.routes && j.routes[0]) {
+      let g = j.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+      if (g.length > 600) { const k = Math.ceil(g.length / 600); g = g.filter((_, i) => i % k === 0 || i === g.length - 1); }
+      r.geom = g; store.set('geom_' + r.id, g); prepGeom(r);
     }
   } catch (e) {}
   if (r === currentRoute) { drawRouteOnMap(); render(); }
@@ -578,7 +809,10 @@ const S = {
   dist: 0, steps: 0, sec: 0, kcal: 0, hrSum: 0, hrN: 0, hrMax: 0, startedAt: null,
   speed: 0, hr: null, targetSpeed: 0
 };
-let progress = store.get('progress', {});   // km percorridos em cada rota (acumulado)
+let progress = store.get('progress', {});
+let histCache = null;
+function getHist() { return histCache || (histCache = store.get('history', [])); }
+function setHist(h) { histCache = h; store.set('history', h); }   // km percorridos em cada rota (acumulado)
 function routeKmDone() { return (progress[currentRoute.id] || 0); }
 
 /* ---------------- Interface: render ---------------- */
@@ -596,13 +830,13 @@ function render() {
   $('speedTxt').textContent = fmt1(S.speed); $('kcalTxt').textContent = Math.round(S.kcal);
   $('stepsTxt').textContent = Math.round(S.steps).toLocaleString('pt-PT');
   $('hrTxt').textContent = S.hr ? S.hr : '--';
-  const g = gradeAt(r, lapPos); $('gradeTxt').textContent = g == null ? '--' : (g >= 0 ? '+' : '') + fmt1(clamp(g, -25, 25)) + '%';
   $('paceTxt').textContent = fmtPace(S.speed);
   $('hudDist').textContent = fmt2(S.dist); $('hudTime').textContent = fmtTime(S.sec); $('hudSpeed').textContent = fmt1(S.speed); $('hudHr').textContent = S.hr || '--';
   const ld = $('liveDot'); ld.className = 'live-dot' + (S.state === 'running' ? (S.speed > 0 ? ' on' : ' pause') : S.state === 'paused' ? ' pause' : '');
   $('liveTxt').textContent = S.state === 'running' ? (S.speed > 0 ? 'A ANDAR' : 'À ESPERA DO TAPETE') : S.state === 'paused' ? 'EM PAUSA' : 'PARADO';
+  const stc = streakInfo(getHist()), sc = $('streakChip'); sc.textContent = `🔥 ${stc.cur}`; sc.title = `${stc.cur} dias seguidos`; sc.classList.toggle('show', stc.cur > 0);
   const fav = favs.includes(r.id); $('btnFav').querySelector('path').setAttribute('fill', fav ? '#ff4d6d' : 'none'); $('btnFav').querySelector('svg').setAttribute('stroke', fav ? '#ff4d6d' : '#fff');
-  renderButtons(); updateMapPos(lapPos);
+  renderButtons(); renderWalk(lapPos, pct); updateMapPos(lapPos);
 }
 const IC = {
   play: '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="#03121a"/></svg>',
@@ -626,7 +860,7 @@ function renderButtons() {
   else { left.className = 'rbtn stop'; left.innerHTML = IC.stop; $('leftLbl').textContent = 'Terminar'; }
   if (ks) { right.className = 'rbtn' + (HR.connected ? ' ok' : ''); right.innerHTML = IC.heart; $('rightLbl').textContent = HR.connected ? (S.hr ? S.hr + ' BPM' : 'Relógio ✓') : 'Relógio'; }
   else { right.className = 'rbtn' + (connected ? ' ok' : ''); right.innerHTML = IC.btW; $('rightLbl').textContent = settings.demo ? 'Demo' : TM.connected ? 'R3 ligada' : 'Passadeira'; }
-  $('speedCtl').classList.toggle('show', ks || (connected && settings.control));
+  $('speedCtl').classList.toggle('show', S.state !== 'idle' && (ks || (connected && settings.control)));   // a velocidade acerta-se no ecrã de caminhada
   $('spdTarget').textContent = fmt1(S.targetSpeed);
   $('spdHint').textContent = ks ? 'km/h · acerte igual à passadeira' : 'km/h · velocidade da passadeira';
   const q = $('spdQuick'); if (!q.children.length) QUICK.forEach(v => { const b = document.createElement('button'); b.textContent = v; b.onclick = () => TM.setSpeed(v); q.appendChild(b); });
@@ -642,10 +876,16 @@ setInterval(() => { const d = new Date(); $('clock').textContent = `${pad(d.getH
 
 /* ---------------- Sessão ---------------- */
 function startSession() {
-  Object.assign(S, { state: 'running', dist: 0, steps: 0, sec: 0, kcal: 0, hrSum: 0, hrN: 0, hrMax: 0, vmax: 0, startedAt: new Date().toISOString(), track: [], lastPt: 0, routeId: currentRoute.id });
+  const r = currentRoute, pg = PROGRAMS.find(p => p.id === settings.program);
+  Object.assign(S, { state: 'running', dist: 0, steps: 0, sec: 0, kcal: 0, hrSum: 0, hrN: 0, hrMax: 0, vmax: 0, startedAt: new Date().toISOString(), track: [], lastPt: 0, routeId: r.id,
+    prog: pg && pg.plan ? expandPlan(pg.plan) : null, progName: pg && pg.plan ? pg.name : null, segIdx: -1, warned: -1, progDone: false, lastKm: 0,
+    poiPrev: (r.km ? routeKmDone() % r.km : 0) - 0.0005, poiRoute: r.id, ghost: findGhost(r) });
   if (!S.targetSpeed) S.targetSpeed = settings.lastSpeed || 3;
+  if (S.prog) progTick(true);
   if (settings.control) TM.startBelt();
   wake.on(); musicAuto('play'); render(); toast('Boa caminhada! 🚶');
+  if (!S.prog) { const g = goalInfo(); voice.say('Boa caminhada!' + (g.pct < 1 ? (g.km ? ` Faltam ${sayNum(g.goal - g.val)} quilómetros para o objetivo de hoje.` : ` Faltam ${Math.ceil(g.goal - g.val)} minutos para o objetivo de hoje.`) : '')); }
+  setTimeout(() => poiTick(), 1500);
 }
 function pauseSession() { S.state = 'paused'; if (settings.control) TM.stopBelt(); musicAuto('pause'); render(); }
 function resumeSession() { S.state = 'running'; if (settings.control) TM.startBelt(); musicAuto('play'); render(); }
@@ -672,17 +912,18 @@ function askEnd() {
 function endSession() {
   $('dlgEnd').classList.remove('open');
   if (S.dist > 0.01 || S.sec > 30) {
-    const hist = store.get('history', []);
+    const hist = getHist().slice();
     hist.forEach((h, i) => { if (i >= 29) delete h.track; });   // guarda os pontos das 30 sessões mais recentes
     S.track.push([Date.now(), +(S.dist * 1000).toFixed(1), S.hr || 0, +S.speed.toFixed(2), ...posAt(currentRoute, currentRoute.km ? routeKmDone() % currentRoute.km : 0).map(n => +n.toFixed(6)), Math.round(S.steps)]);
     const v = endValues();
-    hist.unshift({ id: Date.now(), track: S.track, date: S.startedAt, route: currentRoute.name, dist: +v.dist.toFixed(3), sec: Math.round(v.sec), kcal: v.kcal, steps: v.steps,
+    hist.unshift({ id: Date.now(), track: S.track, date: S.startedAt, route: currentRoute.name, routeId: currentRoute.id, program: S.progName || null, dist: +v.dist.toFixed(3), sec: Math.round(v.sec), kcal: v.kcal, steps: v.steps,
       avg: +v.avg.toFixed(2), vmax: +v.vmax.toFixed(1), hr: S.hrN ? Math.round(S.hrSum / S.hrN) : null, hrMax: S.hrMax || null, ksfit: settings.mode === 'ksfit' && !settings.demo });
-    store.set('history', hist.slice(0, 500)); toast('Sessão guardada em Atividade ✓', 2500);
+    setHist(hist.slice(0, 500)); toast('Sessão guardada em Atividade ✓', 2500);
     setTimeout(() => showSummary(hist[0]), 300);
+    setTimeout(() => checkMedals(true), 1400);
   }
   if (settings.control) TM.stopBelt();
-  S.state = 'idle'; S.dist = S.steps = S.sec = S.kcal = 0; wake.off(); musicAuto('pause'); render();
+  S.state = 'idle'; S.dist = S.steps = S.sec = S.kcal = 0; S.prog = null; S.ghost = null; $('wPoi').classList.remove('show'); wake.off(); musicAuto('pause'); render();
 }
 
 // Recebe leituras da passadeira: deltas de distância (km) e passos já calculados
@@ -709,9 +950,236 @@ setInterval(() => {
     if (++saveCounter % 10 === 0) store.set('progress', progress);
     if (Date.now() - S.lastPt >= 5000) { S.lastPt = Date.now(); const r = currentRoute, p = posAt(r, r.km ? routeKmDone() % r.km : 0);
       S.track.push([Date.now(), +(S.dist * 1000).toFixed(1), S.hr || 0, +S.speed.toFixed(2), +p[0].toFixed(6), +p[1].toFixed(6), Math.round(S.steps)]); }
+    progTick(); kmTick(); poiTick(); goalTick();
     render();
   }
 }, 1000);
+
+
+/* ---------------- Voz em português ---------------- */
+const voice = {
+  pick() { const vs = window.speechSynthesis ? speechSynthesis.getVoices() : []; return vs.find(v => /pt[-_]PT/i.test(v.lang)) || vs.find(v => /^pt/i.test(v.lang)) || null; },
+  say(text, force) {
+    if ((!settings.voice && !force) || !('speechSynthesis' in window)) return;
+    try { const u = new SpeechSynthesisUtterance(text); u.lang = 'pt-PT'; const v = this.pick(); if (v) u.voice = v; u.rate = 1.03; speechSynthesis.speak(u); } catch (e) {}
+  }
+};
+if ('speechSynthesis' in window) { try { speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged = () => {}; } catch (e) {} }
+function sayNum(n) { n = Math.round(n * 10) / 10; return Number.isInteger(n) ? String(n) : String(n).replace('.', ','); }
+function sayTime(sec) { sec = Math.round(sec); const h = Math.floor(sec / 3600), m = Math.floor(sec % 3600 / 60), s = sec % 60, out = [];
+  if (h) out.push(h + (h === 1 ? ' hora' : ' horas')); if (m) out.push(m + (m === 1 ? ' minuto' : ' minutos')); if (!h && s) out.push(s + (s === 1 ? ' segundo' : ' segundos'));
+  return out.join(' e ') || '0 segundos'; }
+function buzz(p) { try { navigator.vibrate && navigator.vibrate(p); } catch (e) {} }
+
+/* ---------------- Objetivo diário ---------------- */
+const dayKey = (d) => { d = new Date(d); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
+function todayStats() {
+  const k = dayKey(Date.now()), t = { dist: 0, sec: 0, steps: 0 };
+  getHist().forEach(h => { if (dayKey(h.date) === k) { t.dist += h.dist; t.sec += h.sec; t.steps += h.steps || 0; } });
+  if (S.state !== 'idle') { t.dist += S.dist; t.sec += S.sec; t.steps += S.steps; }
+  return t;
+}
+function goalInfo() {
+  const t = todayStats(), km = settings.goalType !== 'min', goal = Math.max(0.5, +settings.goalVal || 3), val = km ? t.dist : t.sec / 60;
+  return { val, goal, km, pct: clamp(val / goal, 0, 1), txt: km ? fmt1(val) : String(Math.floor(val)), unit: km ? `/${fmt1(goal)} km` : `/${Math.round(goal)} min` };
+}
+function ringSVG(p, size, sw, label) {
+  const r = (size - sw) / 2, c = 2 * Math.PI * r, col = p >= 1 ? '#00ff9c' : '#00e5ff';
+  return `<svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}"><circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="rgba(255,255,255,.16)" stroke-width="${sw}"/>` +
+    `<circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="${col}" stroke-width="${sw}" stroke-linecap="round" stroke-dasharray="${(c * p).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 ${size / 2} ${size / 2})" style="filter:drop-shadow(0 0 4px ${col})"/>` +
+    (label ? `<text x="50%" y="50%" dy=".36em" text-anchor="middle" fill="#fff" style="font:800 ${Math.round(size * .27)}px 'Barlow Condensed',sans-serif">${label}</text>` : '') + '</svg>';
+}
+function goalTick() {
+  const g = goalInfo(), k = dayKey(Date.now());
+  if (g.pct >= 1 && store.get('goalDay', '') !== k) {
+    store.set('goalDay', k); confetti(); buzz([200, 100, 200, 100, 400]);
+    showBadge('🎯', 'Objetivo cumprido!', `Hoje já fez ${g.km ? fmt1(g.val) + ' km' : Math.floor(g.val) + ' min'}. Continue assim!`);
+    voice.say('Parabéns! Cumpriu o objetivo de hoje.');
+  }
+}
+
+/* ---------------- Festa e medalhas ---------------- */
+function confetti() {
+  const box = document.createElement('div'), cols = ['#00e5ff', '#00ff9c', '#ffb020', '#ff4d6d', '#ffffff', '#b46bff']; box.className = 'confetti';
+  for (let i = 0; i < 100; i++) { const p = document.createElement('i'); p.style.left = (Math.random() * 100) + '%'; p.style.background = cols[i % cols.length];
+    p.style.animationDuration = (2.2 + Math.random() * 1.6) + 's'; p.style.animationDelay = (Math.random() * .7) + 's'; p.style.setProperty('--dx', (Math.random() * 160 - 80) + 'px'); box.appendChild(p); }
+  document.body.appendChild(box); setTimeout(() => box.remove(), 4800);
+}
+let badgeQ = Promise.resolve();
+function showBadge(ic, title, sub) {
+  badgeQ = badgeQ.then(() => new Promise(res => { const b = $('badgePop'); b.innerHTML = `<i>${ic}</i><b></b><span></span>`; b.querySelector('b').textContent = title; b.querySelector('span').textContent = sub || '';
+    b.classList.add('show'); setTimeout(() => { b.classList.remove('show'); setTimeout(res, 350); }, 3200); }));
+}
+const MEDALS = [
+  { id: 'first', e: '👟', n: 'Primeira caminhada', d: 'Terminar a primeira sessão', t: x => x.n >= 1 },
+  { id: 'm30', e: '⏱️', n: '30 minutos', d: '30 min numa sessão', t: x => x.maxSec >= 1800 },
+  { id: 'm60', e: '⌛', n: '1 hora', d: '60 min numa sessão', t: x => x.maxSec >= 3600 },
+  { id: 'k5', e: '🏅', n: '5 km', d: '5 km numa sessão', t: x => x.maxDist >= 5 },
+  { id: 'w10', e: '📅', n: 'Semana de 10 km', d: '10 km na mesma semana', t: x => x.maxWeek >= 10 },
+  { id: 'p10k', e: '👣', n: '10 000 passos', d: '10 000 passos num dia', t: x => x.maxDaySteps >= 10000 },
+  { id: 'd3', e: '🔥', n: '3 dias seguidos', d: 'Caminhar 3 dias seguidos', t: x => x.bestStreak >= 3 },
+  { id: 'd7', e: '☄️', n: '7 dias seguidos', d: 'Caminhar 7 dias seguidos', t: x => x.bestStreak >= 7 },
+  { id: 't50', e: '🥈', n: '50 km no total', d: 'Somar 50 km', t: x => x.tot >= 50 },
+  { id: 't100', e: '🥇', n: '100 km no total', d: 'Somar 100 km', t: x => x.tot >= 100 },
+  { id: 'r1', e: '🗺️', n: 'Rota completa', d: 'Chegar ao fim de uma rota', t: x => x.routesDone >= 1 },
+  { id: 'rall', e: '🌍', n: 'Todas as rotas', d: 'Completar todas as rotas', t: x => x.routesDone >= ROUTES.length }
+];
+function streakInfo(hist) {
+  const days = new Set(hist.map(h => dayKey(h.date))), d = new Date(); d.setHours(12, 0, 0, 0);
+  const today = days.has(dayKey(d)); if (!today) d.setDate(d.getDate() - 1);
+  let cur = 0; while (days.has(dayKey(d))) { cur++; d.setDate(d.getDate() - 1); }
+  let best = 0, run = 0, prev = null;
+  [...days].sort().forEach(k => { const t = new Date(k + 'T12:00:00'); run = prev && Math.round((t - prev) / 864e5) === 1 ? run + 1 : 1; best = Math.max(best, run); prev = t; });
+  return { cur, best, today };
+}
+function medalStats(hist) {
+  const x = { n: hist.length, maxSec: 0, maxDist: 0, tot: 0, maxWeek: 0, maxDaySteps: 0, bestStreak: streakInfo(hist).best, routesDone: ROUTES.filter(r => (progress[r.id] || 0) >= r.km - 0.01).length };
+  const wk = {}, dy = {};
+  hist.forEach(h => { x.maxSec = Math.max(x.maxSec, h.sec); x.maxDist = Math.max(x.maxDist, h.dist); x.tot += h.dist;
+    const d = new Date(h.date); d.setHours(12, 0, 0, 0); d.setDate(d.getDate() - (d.getDay() + 6) % 7); const w = dayKey(d); wk[w] = (wk[w] || 0) + h.dist;
+    const k = dayKey(h.date); dy[k] = (dy[k] || 0) + (h.steps || 0); });
+  x.maxWeek = Math.max(0, ...Object.values(wk)); x.maxDaySteps = Math.max(0, ...Object.values(dy));
+  return x;
+}
+function checkMedals(announce) {
+  const saved = store.get('medals', null), got = saved || {}, x = medalStats(getHist()), fresh = [];
+  MEDALS.forEach(m => { if (!got[m.id] && m.t(x)) { got[m.id] = Date.now(); fresh.push(m); } });
+  store.set('medals', got);
+  if (announce && saved && fresh.length) {
+    confetti(); buzz([150, 80, 150]);
+    fresh.forEach(m => showBadge(m.e, 'Nova medalha!', m.n));
+    voice.say(fresh.length === 1 ? `Nova medalha: ${fresh[0].n}!` : `Ganhou ${fresh.length} medalhas novas: ${fresh.map(m => m.n).join(', ')}!`);
+  }
+  return got;
+}
+
+/* ---------------- Treinos por intervalos ---------------- */
+const PROGRAMS = [
+  { id: 'free', name: 'Livre', desc: 'Sem plano: anda ao seu ritmo', plan: null },
+  { id: 'active30', name: 'Caminhada ativa', desc: '30 min · alterna 6 e 4,5 km/h', plan: [[300, 4, 'Aquecimento'], { rep: 5, segs: [[180, 6, 'Rápido'], [120, 4.5, 'Recuperar']] }] },
+  { id: 'walkrun30', name: 'Andar e correr', desc: '30 min · corridas de 2 min a 8 km/h', plan: [[300, 5, 'Aquecimento'], { rep: 5, segs: [[120, 8, 'Correr'], [180, 5, 'Andar']] }] },
+  { id: 'fat40', name: 'Queima de gordura', desc: '40 min · ritmo constante com picos', plan: [[300, 4.5, 'Aquecimento'], { rep: 6, segs: [[240, 5.5, 'Ritmo'], [60, 6.5, 'Pico']] }, [300, 4, 'Arrefecer']] },
+  { id: 'run25', name: 'Iniciação à corrida', desc: '25 min · 1 min a correr, 2 a andar', plan: [[300, 5, 'Aquecimento'], { rep: 6, segs: [[60, 7.5, 'Correr'], [120, 5, 'Andar']] }, [120, 4, 'Arrefecer']] }
+];
+function expandPlan(plan) {
+  const out = []; let t = 0, n = 0;
+  plan.forEach(p => { const list = Array.isArray(p) ? [p] : [].concat(...Array(p.rep).fill(p.segs));
+    list.forEach(([d, v, l]) => { out.push({ d, v, l, start: t, i: ++n }); t += d; }); });
+  out.forEach(sg => sg.n = out.length); return out;
+}
+function progMinutes(p) { return p.plan ? Math.round(expandPlan(p.plan).reduce((a, sg) => a + sg.d, 0) / 60) : 0; }
+function applyProgSpeed(v) { const ks = settings.mode === 'ksfit' && !settings.demo; if (ks || settings.demo || (TM.connected && settings.control)) TM.setSpeed(v); }
+function progTick(first) {
+  if (!S.prog) return;
+  const idx = S.prog.findIndex(sg => S.sec < sg.start + sg.d), ks = settings.mode === 'ksfit' && !settings.demo;
+  if (idx < 0) { if (!S.progDone) { S.progDone = true; buzz([300, 120, 300, 120, 600]); voice.say('Treino concluído. Muito bem! Pode continuar ao seu ritmo.'); confetti(); } return; }
+  const sg = S.prog[idx], next = S.prog[idx + 1];
+  if (idx !== S.segIdx) {
+    S.segIdx = idx; applyProgSpeed(sg.v); if (!first) buzz([250, 100, 250]);
+    voice.say(first ? `Treino ${S.progName}. ${sg.l} a ${sayNum(sg.v)} quilómetros por hora.${ks ? ' Acerte a passadeira.' : ''}` : `Agora: ${sg.l.toLowerCase()}, ${sayNum(sg.v)}.`);
+  }
+  if (next && S.warned !== idx && sg.start + sg.d - S.sec <= 10) { S.warned = idx; voice.say(`Daqui a 10 segundos: ${next.l.toLowerCase()} a ${sayNum(next.v)} quilómetros por hora.`); }
+}
+
+/* ---------------- Desafio contra o seu melhor ---------------- */
+function findGhost(r) {
+  const c = getHist().filter(h => (h.routeId ? h.routeId === r.id : h.route === r.name) && h.sec > 300 && h.avg > 0);
+  if (!c.length) return null; const b = c.reduce((a, h) => h.avg > a.avg ? h : a); return { avg: b.avg, date: b.date };
+}
+function ghostDiff() { return S.ghost ? (S.dist - S.ghost.avg * S.sec / 3600) * 1000 : 0; }
+
+/* ---------------- Voz a cada km ---------------- */
+function kmTick() {
+  const k = Math.floor(S.dist + 1e-9); if (k <= (S.lastKm || 0)) return; S.lastKm = k;
+  const avg = S.sec ? S.dist / (S.sec / 3600) : S.speed;
+  let t = `${k} ${k === 1 ? 'quilómetro' : 'quilómetros'}. Tempo: ${sayTime(S.sec)}. Velocidade média: ${sayNum(avg)}.`;
+  if (S.ghost) { const d = Math.round(ghostDiff()); t += d >= 0 ? ` Vai ${d} metros à frente do seu recorde.` : ` Está ${-d} metros atrás do seu recorde.`; }
+  const g = goalInfo(); if (g.pct < 1 && g.km) t += ` Faltam ${sayNum(g.goal - g.val)} para o objetivo.`;
+  voice.say(t); buzz(120);
+}
+
+/* ---------------- Pontos de interesse ---------------- */
+let poiT = null;
+function poiTick() {
+  const r = currentRoute; if (S.state === 'idle' || !r.pois || !r.pois.length || !r.km) return;
+  const cur = routeKmDone() % r.km;
+  if (S.poiPrev == null || S.poiRoute !== r.id) { S.poiPrev = cur; S.poiRoute = r.id; return; }
+  const prev = S.poiPrev; S.poiPrev = cur;
+  const hits = cur >= prev ? r.pois.filter(p => p.km > prev && p.km <= cur) : [...r.pois.filter(p => p.km > prev), ...r.pois.filter(p => p.km <= cur)];   // volta completa: fim e depois início
+  hits.slice(0, 3).forEach((p, i) => setTimeout(() => showPoi(p), i * 13000));
+}
+function showPoi(p) {
+  const el = $('wPoi'); el.innerHTML = '<b></b><span></span>'; el.querySelector('b').textContent = '📍 ' + p.n; el.querySelector('span').textContent = p.f;
+  el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+  clearTimeout(poiT); poiT = setTimeout(() => el.classList.remove('show'), 14000);
+  voice.say(`${p.n}. ${p.f}`);
+}
+
+/* ---------------- Ecrã de caminhada ---------------- */
+function renderWalk(lapPos, pct) {
+  const on = S.state !== 'idle', app = $('app'), r = currentRoute, ks = settings.mode === 'ksfit' && !settings.demo;
+  if (app.classList.contains('walking') !== on) {
+    app.classList.toggle('walking', on);
+    const m = $('music'); if (on) $('wMusicSlot').appendChild(m); else $('bottomBox').insertBefore(m, $('speedCtl'));
+    if (mapS.map) setTimeout(() => { mapS.map.invalidateSize(); updateMapPos(r.km ? routeKmDone() % r.km : 0); }, 80);
+  }
+  const g = goalInfo();
+  $('goalRing').innerHTML = ringSVG(g.pct, 30, 5); $('goalTxt').textContent = g.txt; $('goalUnit').textContent = g.unit;
+  const pg = PROGRAMS.find(p => p.id === settings.program) || PROGRAMS[0];
+  $('progChip').textContent = '🏋️ ' + (pg.plan ? `${pg.name} · ${progMinutes(pg)} min` : 'Treino: Livre'); $('progChip').classList.toggle('on', !!pg.plan);
+  $('goalChip').textContent = `🎯 ${g.pct >= 1 ? 'Objetivo cumprido ✓' : 'Objetivo ' + g.txt + g.unit}`;
+  if (!on) return;
+  $('wRouteName').textContent = `${r.emoji} ${r.name}`; $('wRoutePct').textContent = Math.round(pct) + '%'; $('wRouteBar').style.width = pct.toFixed(1) + '%';
+  $('wGoal').innerHTML = ringSVG(g.pct, 58, 6, Math.round(g.pct * 100) + '%');
+  $('wTime').textContent = fmtTime(S.sec); $('wDist').textContent = fmt2(S.dist); $('wSpeed').textContent = fmt1(S.speed); $('wHr').textContent = S.hr || '--';
+  $('wSub').textContent = `${Math.round(S.steps).toLocaleString('pt-PT')} passos · ${Math.round(S.kcal)} kcal · ${fmtPace(S.speed)} /km`;
+  const main = $('wMain'); main.className = 'play' + (S.state === 'running' ? ' pause' : ''); main.innerHTML = S.state === 'running' ? IC.pause : IC.play;
+  const adj = ks || settings.demo || (TM.connected && settings.control);
+  ['wDown', 'wUp'].forEach(id => $(id).classList.toggle('hide', !adj)); $('wQuick').style.display = adj ? '' : 'none';
+  const q = $('wQuick'); if (!q.children.length) QUICK.forEach(v => { const b = document.createElement('button'); b.textContent = v; b.onclick = () => TM.setSpeed(v); q.appendChild(b); });
+  [...q.children].forEach((b, i) => b.classList.toggle('on', Math.abs(QUICK[i] - S.targetSpeed) < 0.05));
+  $('wHint').innerHTML = S.state === 'paused' ? 'Em pausa · toque em ▶ para continuar' : ks ? `Alvo <b>${fmt1(S.targetSpeed)} km/h</b> · acerte igual na passadeira` : settings.demo ? 'Modo demonstração' : '';
+  $('wMap').classList.toggle('on', $('minimap').classList.contains('show'));
+  // intervalos
+  const wi = $('wInt');
+  if (S.prog) {
+    const idx = S.prog.findIndex(sg => S.sec < sg.start + sg.d);
+    if (idx < 0) { wi.className = 'w-int show done'; wi.innerHTML = `<div class="l1"><span class="seg">✓ Treino concluído</span></div><div class="l2">${S.progName} · continue ao seu ritmo</div>`; }
+    else { const sg = S.prog[idx], next = S.prog[idx + 1], rem = sg.start + sg.d - S.sec;
+      wi.className = 'w-int show';
+      wi.innerHTML = `<div class="l1"><span class="seg">${sg.l} <em>${fmt1(sg.v)} km/h</em></span><span class="rem">${fmtTime(rem)}</span></div><div class="l2">${S.progName} · bloco ${sg.i} de ${sg.n}${next ? ` · a seguir: ${next.l.toLowerCase()} ${fmt1(next.v)}` : ' · último bloco'}</div><div class="pb"><i style="width:${((S.sec - sg.start) / sg.d * 100).toFixed(1)}%"></i></div>`; }
+  } else wi.className = 'w-int';
+  // fantasma
+  const gh = $('wGhost');
+  if (S.ghost && S.sec > 15) { const d = Math.round(ghostDiff()); gh.className = 'w-ghost show ' + (d >= 0 ? 'ahead' : 'behind');
+    gh.textContent = `👻 ${d >= 0 ? '+' + d + ' m à frente' : d + ' m atrás'} do seu recorde (${fmt1(S.ghost.avg)} km/h)`; }
+  else gh.className = 'w-ghost';
+}
+
+/* ---------------- Escolha do treino ---------------- */
+function renderProgList() {
+  $('progList').innerHTML = PROGRAMS.map(p => { const segs = p.plan ? expandPlan(p.plan) : [];
+    const bars = segs.length ? `<div class="prog-bars">${segs.map(sg => `<i style="flex:${sg.d};height:${Math.round(sg.v / 8 * 100)}%"></i>`).join('')}</div>` : '';
+    return `<button class="prog-item ${settings.program === p.id ? 'on' : ''}" data-p="${p.id}"><b>${p.name}${p.plan ? ` · ${progMinutes(p)} min` : ''}</b><span>${p.desc}</span>${bars}</button>`; }).join('');
+  $('progList').querySelectorAll('[data-p]').forEach(b => b.onclick = () => { settings.program = b.dataset.p; saveSettings(); $('dlgProg').classList.remove('open'); render();
+    const p = PROGRAMS.find(x => x.id === settings.program); toast(p.plan ? `Treino escolhido: ${p.name}. Carregue em ▶ para começar.` : 'Treino livre'); });
+}
+
+/* ---------------- Guia rápido ---------------- */
+const GUIDE = [
+  { i: '📱', t: 'Comece na KS Fit', d: 'Ligue a passadeira na app KS Fit, como sempre: é ela que grava o treino. Pode deixar o Spotify a tocar por trás.' },
+  { i: '🚶', t: 'Escolha a rota e carregue em ▶', d: 'O vídeo anda à sua velocidade. Quando mudar a velocidade no comando da passadeira, toque em − ou + aqui para ficar igual.' },
+  { i: '📸', t: 'No fim, copie os valores da KS Fit', d: 'Toque em ■ Terminar e escreva a distância, o tempo, os passos e as calorias da KS Fit. A imagem de resumo fica pronta para o printscreen.' }
+];
+let gStep = 0;
+function showGuide(i) {
+  gStep = i; const g = GUIDE[i]; $('gN').textContent = `Passo ${i + 1} de ${GUIDE.length}`; $('gIc').textContent = g.i; $('gT').textContent = g.t; $('gD').textContent = g.d;
+  $('gDots').innerHTML = GUIDE.map((_, k) => `<i class="${k === i ? 'on' : ''}"></i>`).join(''); $('gNext').textContent = i === GUIDE.length - 1 ? 'Começar' : 'Seguinte';
+  $('guide').classList.add('open');
+}
+function closeGuide() { $('guide').classList.remove('open'); store.set('guided', true); }
+$('gNext').onclick = () => gStep < GUIDE.length - 1 ? showGuide(gStep + 1) : closeGuide();
+$('gSkip').onclick = closeGuide;
 
 /* ---------------- WalkingPad (Bluetooth) ---------------- */
 const SVC_WP = '0000fe00-0000-1000-8000-00805f9b34fb';
@@ -987,7 +1455,7 @@ function updateMapPos(km) {
 }
 function toggleMap(force) {
   const m = $('minimap'), on = force != null ? force : !m.classList.contains('show');
-  m.classList.toggle('show', on); m.classList.remove('big'); $('btnMap').classList.toggle('on', on); store.set('mapOn', on);
+  m.classList.toggle('show', on); m.classList.remove('big'); $('btnMap').classList.toggle('on', on); $('app').classList.toggle('mapon', on); store.set('mapOn', on); if ($('wMap')) $('wMap').classList.toggle('on', on);
   if (on) { initMap(); setTimeout(() => { if (mapS.map) { mapS.map.invalidateSize(); mapS.map.fitBounds(mapS.line.getBounds(), { padding: [10, 10] }); } updateMapPos(currentRoute.km ? routeKmDone() % currentRoute.km : 0); }, 50); }
 }
 $('btnMap').onclick = () => toggleMap();
@@ -1129,7 +1597,7 @@ $('spOpenApp').onclick = () => { const l = sp.parseLink(settings.spLink); locati
 /* ---------------- Rotas: ecrã ---------------- */
 function selectRoute(r) {
   if (S.state !== 'idle' && r.id !== currentRoute.id) toast('Rota alterada. A distância continua a contar na sessão.');
-  currentRoute = r; store.set('route', r.id);
+  currentRoute = r; store.set('route', r.id); if (S.state !== 'idle') { S.ghost = null; S.poiPrev = null; }
   video.load(r); drawRouteOnMap(); render(); renderRoutes(); enrichRoute(r);
 }
 function renderRoutes() {
@@ -1187,6 +1655,9 @@ function renderActivity() {
       <div class="route-actions"><button class="chip accent" data-x="png" data-i="${hist.indexOf(h)}">Imagem de resumo</button><button class="chip" data-x="tcx" data-i="${hist.indexOf(h)}">TCX</button><button class="chip" data-x="gpx" data-i="${hist.indexOf(h)}">GPX (com mapa)</button></div></div>`; }).join('')
     : '<div class="empty">Ainda não há caminhadas guardadas.<br>Termine uma sessão para a ver aqui.</div>';
   $('histList').querySelectorAll('[data-x]').forEach(b => b.onclick = () => exportSession(hist[+b.dataset.i], b.dataset.x));
+  const st = streakInfo(hist), got = checkMedals(false), nGot = MEDALS.filter(m => got[m.id]).length;
+  $('streakBox').innerHTML = `<div class="streak-row"><div class="fire">🔥</div><div><b>${st.cur} ${st.cur === 1 ? 'dia seguido' : 'dias seguidos'}</b><span>${st.today ? 'Hoje já está feito ✓' : st.cur ? 'Caminhe hoje para não perder a sequência' : 'Caminhe hoje para começar uma sequência'} · recorde: ${st.best} · medalhas: ${nGot}/${MEDALS.length}</span></div></div>`;
+  $('medalGrid').innerHTML = MEDALS.map(m => `<div class="medal ${got[m.id] ? 'on' : ''}"><i>${m.e}</i><b>${m.n}</b><span>${got[m.id] ? new Date(got[m.id]).toLocaleDateString('pt-PT', { day: '2-digit', month: 'short' }) : m.d}</span></div>`).join('');
 }
 
 /* ---------------- Exportação TCX / GPX ---------------- */
@@ -1299,7 +1770,7 @@ $('exportBtn').onclick = () => {
   const rows = [['data', 'rota', 'distancia_km', 'tempo_s', 'kcal', 'passos', 'vel_media_kmh', 'vel_max_kmh', 'bpm_medio', 'bpm_max'], ...hist.map(h => [h.date, '"' + h.route + '"', h.dist, h.sec, h.kcal, h.steps, h.avg, h.vmax || '', h.hr || '', h.hrMax || ''])];
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([rows.map(r => r.join(';')).join('\n')], { type: 'text/csv' })); a.download = 'virtual-walk-historico.csv'; a.click();
 };
-$('clearBtn').onclick = () => { if (confirm('Apagar todo o histórico de caminhadas?')) { store.set('history', []); renderActivity(); toast('Histórico apagado'); } };
+$('clearBtn').onclick = () => { if (confirm('Apagar todo o histórico de caminhadas?')) { setHist([]); renderActivity(); toast('Histórico apagado'); } };
 
 /* ---------------- Perfil ---------------- */
 function bindSettings() {
@@ -1314,6 +1785,11 @@ function bindSettings() {
   $('tmBtn').onclick = () => TM.connected ? TM.disconnect() : TM.connect();
   const md = $('setMode'); md.value = settings.mode; md.onchange = () => { settings.mode = md.value; saveSettings(); if (md.value === 'ksfit' && TM.connected) TM.disconnect(); render(); };
   $('hrBtn').onclick = () => HR.connected ? HR.disconnect() : HR.connect();
+  num('setGoalVal', 'goalVal');
+  const gt = $('setGoalType'); gt.value = settings.goalType; gt.onchange = () => { settings.goalType = gt.value; if (gt.value === 'min' && settings.goalVal < 10) settings.goalVal = 30; if (gt.value === 'km' && settings.goalVal > 30) settings.goalVal = 3; $('setGoalVal').value = settings.goalVal; saveSettings(); render(); };
+  sw('setVoice', 'voice', (on) => { if (on) voice.say('Voz ligada. Vamos a isso!'); });
+  $('voiceTest').onclick = () => voice.say('Olá! Um quilómetro. Tempo: 11 minutos e 30 segundos. Muito bem!', true);
+  $('guideBtn').onclick = () => showGuide(0);
 }
 
 /* ---------------- Navegação e botões ---------------- */
@@ -1324,6 +1800,16 @@ function showScreen(name) {
 }
 document.querySelectorAll('#nav button').forEach(b => b.onclick = () => showScreen(b.dataset.scr));
 $('btnLeft').onclick = () => S.state === 'idle' ? showScreen('routes') : askEnd();
+$('wEnd').onclick = askEnd;
+$('wMain').onclick = () => $('btnMain').onclick();
+$('wUp').onclick = () => TM.setSpeed((S.targetSpeed || S.speed) + 0.5);
+$('wDown').onclick = () => TM.setSpeed((S.targetSpeed || S.speed) - 0.5);
+$('wMap').onclick = () => toggleMap();
+$('wHrBox').onclick = () => { if (!HR.connected) HR.connect(); };
+$('progChip').onclick = () => { renderProgList(); $('dlgProg').classList.add('open'); };
+$('progClose').onclick = () => $('dlgProg').classList.remove('open');
+const openGoal = () => { showScreen('profile'); setTimeout(() => $('goalPanel').scrollIntoView({ behavior: 'smooth', block: 'center' }), 50); };
+$('goalChip').onclick = openGoal; $('goalBox').onclick = openGoal;
 $('btnRight').onclick = () => {
   if (settings.mode === 'ksfit' && !settings.demo) { HR.connected ? toast('Relógio ligado' + (S.hr ? ' · ' + S.hr + ' BPM' : '')) : HR.connect(); }
   else if (!settings.demo) { TM.connected ? toast('Passadeira ligada') : TM.connect(); }
@@ -1347,6 +1833,7 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 
 /* ---------------- Arranque ---------------- */
 bindSettings();
+checkMedals(false);
 ROUTES.forEach(preloadImg);
 render(); renderSpAuth();
 if (store.get('mapOn', false)) toggleMap(true);
@@ -1356,6 +1843,7 @@ video.load(currentRoute);
 enrichRoute(currentRoute);
 setTimeout(() => ROUTES.filter(r => r !== currentRoute).forEach(enrichRoute), 4000);
 sp.handleRedirect();
+if (!store.get('guided', false) && !location.search.includes('code=')) setTimeout(() => showGuide(0), 600);
 </script>
 </body>
 </html>
